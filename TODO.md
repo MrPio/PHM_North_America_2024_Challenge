@@ -17,6 +17,7 @@
 
 - reverse della normalizzazione
 - test split in holdout
+- FLOP calculation cita (https://arxiv.org/abs/2409.13550) nella bibliografia
 
 # DONE:
 
