@@ -15,10 +15,11 @@
 
 # TODO:
 
-- reverse della normalizzazione
-- test split in holdout
+- reverse della normalizzazione in inferenza!
+- Abbiamo preferito Occam, interpretabili
 - FLOP calculation cita (https://arxiv.org/abs/2409.13550) nella bibliografia
 
 # DONE:
 
+- test split in holdout
 - prova moltiplicazioni 
