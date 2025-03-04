@@ -1,5 +1,5 @@
 # PHM North America 2024 Challenge
-Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks
+Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm2024-conference-data-challenge/) with [Kolmogorov-Arnold Networks](https://github.com/KindXiaoming/pykan).
 
 <p align="center">
   <img width="250rem" src="https://github.com/user-attachments/assets/9d513014-9f84-4387-b68e-7c7941bad89d"/>
