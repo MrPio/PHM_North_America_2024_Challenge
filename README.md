@@ -5,20 +5,20 @@ Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks
   <img width="250rem" src="https://github.com/user-attachments/assets/9d513014-9f84-4387-b68e-7c7941bad89d"/>
 </p>
 
-### 📙 Slideshow:
+## 📙 Slideshow:
 
-#### First review [`.PPTX`](https://github.com/user-attachments/files/19043133/Gruppo.A1.prima.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19043132/Gruppo.A1.prima.revisione.pdf)
+### ➡️ First review [`.PPTX`](https://github.com/user-attachments/files/19043133/Gruppo.A1.prima.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19043132/Gruppo.A1.prima.revisione.pdf)
 
-#### Second review [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19074286/Gruppo.A1.seconda.revisione.pdf)
+### ➡️ Second review [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19074286/Gruppo.A1.seconda.revisione.pdf)
 
-### 1️⃣ EDA:
+## 1️⃣ EDA:
 
 #### PCA
 <p align="center">
   <img width="600rem" src="https://github.com/user-attachments/assets/f187c558-0d2a-459e-93b0-590d87b243e8"/>
 </p>
 
-### 2️⃣ Probabilistic Regression:
+## 2️⃣ Probabilistic Regression:
 
 #### KANs are interpretable
 <p align="center">
@@ -36,7 +36,7 @@ Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks
   <img width="450rem" src="https://github.com/user-attachments/assets/47781fa4-12c6-4f9f-8a18-1e90eb24365f"/>
 </p>
 
-### 3️⃣ Fault Detection:
+## 3️⃣ Fault Detection:
 
 #### Binary classification with BCEWithLogitsLoss(pos_weight=2) = 0.18
 <p align="center">
