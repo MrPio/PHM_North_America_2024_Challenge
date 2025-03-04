@@ -22,8 +22,8 @@ Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks
 
 #### KANs are interpretable
 <p align="center">
-  <img align="left" width="450rem" src="https://github.com/user-attachments/assets/ba3aad37-ce1f-483b-b8e4-b8a209c415ca"/>
-  <img width="450rem" src="https://github.com/user-attachments/assets/16cfdd27-ec95-48e7-bed3-8b778fe10fc0"/>
+  <img align="left" width="42%" src="https://github.com/user-attachments/assets/ba3aad37-ce1f-483b-b8e4-b8a209c415ca"/>
+  <img width="42%" src="https://github.com/user-attachments/assets/16cfdd27-ec95-48e7-bed3-8b778fe10fc0"/>
 </p>
 
 #### Torque Target Probabilistic Regression with MLP, non-interpretable. GaussianNLL= -5
@@ -40,6 +40,6 @@ Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks
 
 #### Binary classification with BCEWithLogitsLoss(pos_weight=2) = 0.18
 <p align="center">
-  <img align="left" width="450rem" src="https://github.com/user-attachments/assets/0b95a142-294a-4777-b67b-ded899e49ee8"/>
-  <img width="450rem" src="https://github.com/user-attachments/assets/8f038a37-2efe-4d33-9cf3-e63c70209329"/>
+  <img align="left" width="42%" src="https://github.com/user-attachments/assets/0b95a142-294a-4777-b67b-ded899e49ee8"/>
+  <img width="42%" src="https://github.com/user-attachments/assets/8f038a37-2efe-4d33-9cf3-e63c70209329"/>
 </p>
