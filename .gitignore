@@ -1,6 +1,4 @@
 dataset/*csv
-dataset/regression/
-dataset/classification/
 .idea/
 figures/
 model/
