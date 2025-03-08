@@ -1,4 +1,4 @@
-dataset/*csv
+dataset/**/*.csv
 .idea/
 figures/
 model/
