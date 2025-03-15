@@ -12,6 +12,8 @@ Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm202
 
 ## 📙 How this repository is structured
 
+> [!IMPORTANT]  
+> Before running the notebooks, make sure to extract the [`\dataset\0-original\dataset.zip`](/dataset/0-original/dataset.zip) archive.
 
 <p align="center">
     <img width="65%" src="img/strategy_map.png"/>
