@@ -13,7 +13,7 @@ Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm202
 ## 📙 How this repository is structured
 
 > [!IMPORTANT]  
-> Before running the notebooks, make sure to extract the [`\dataset\0-original\dataset.zip`](/dataset/0-original/dataset.zip) archive.
+> Before running the notebooks, make sure to extract the [`\dataset\0-original\dataset.zip`](/dataset/0-original/dataset.zip) archive. Then, you can begin running the notebooks in sequence, starting from [1.1](1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb).
 
 <p align="center">
     <img width="65%" src="img/strategy_map.png"/>
