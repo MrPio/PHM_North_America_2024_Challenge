@@ -12,42 +12,37 @@ Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm202
 
 ## 📙 How this repository is structured
 
-> [!IMPORTANT]  
-> Before running the notebooks, make sure to extract the [`\dataset\0-original\dataset.zip`](/dataset/0-original/dataset.zip) archive. Then, you can begin running the notebooks in sequence, starting from [1.1](1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb).
+This repository contains 14 Jupyter notebook, structured in according to the strategy devised to tackle the challenge, shown in the following map.
 
 <p align="center">
     <img width="65%" src="img/strategy_map.png"/>
 </p>
 
-## 1️⃣ EDA:
+> [!IMPORTANT]  
+> Before running the notebooks, make sure to extract the [`\dataset\0-original\dataset.zip`](/dataset/0-original/dataset.zip) archive and to run `pip install -r requirements.txt`. Then, you can begin running the notebooks in sequence, starting from [1.1](1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb).
 
-#### PCA
-<p align="center">
-  <img width="600rem" src="https://github.com/user-attachments/assets/f187c558-0d2a-459e-93b0-590d87b243e8"/>
-</p>
+You can run the notebook through the jupyter lab running `jupyter lab` in the root directory, or use any IDE such as *PyCharm* or *Visual Studio Code* that handle that for you.
 
-## 2️⃣ Probabilistic Regression:
+> [!NOTE]  
+> As I hadn't included the `.csv` files due to their size, you should run all the notebooks one after the other. 
 
-#### KANs are interpretable
-<p align="center">
-  <img align="left" width="42%" src="https://github.com/user-attachments/assets/ba3aad37-ce1f-483b-b8e4-b8a209c415ca"/>
-  <img width="42%" src="https://github.com/user-attachments/assets/16cfdd27-ec95-48e7-bed3-8b778fe10fc0"/>
-</p>
+More specifically, the notebooks are:
 
-#### Torque Target Probabilistic Regression with MLP, non-interpretable. GaussianNLL= -5
-<p align="center">
-  <img width="550rem" src="https://github.com/user-attachments/assets/c83f614f-3677-4739-b490-df943f152c03"/>
-</p>
-
-#### Torque Target Probabilistic Regression with [PyKAN](https://github.com/KindXiaoming/pykan), interpretable. GaussianNLL= -3
-<p align="center">
-  <img width="450rem" src="https://github.com/user-attachments/assets/47781fa4-12c6-4f9f-8a18-1e90eb24365f"/>
-</p>
-
-## 3️⃣ Fault Detection:
-
-#### Binary classification with BCEWithLogitsLoss(pos_weight=2) = 0.18
-<p align="center">
-  <img align="left" width="42%" src="https://github.com/user-attachments/assets/0b95a142-294a-4777-b67b-ded899e49ee8"/>
-  <img width="42%" src="https://github.com/user-attachments/assets/8f038a37-2efe-4d33-9cf3-e63c70209329"/>
-</p>
+- [`/1-data_preprocessing`](/1-data_preprocessing)
+   - [`1.1-Exploratory_Data_Analysis`](/1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb)
+   - [`1.2-Feature_Extraction`](/1-data_preprocessing/1.2-Feature_Extraction.ipynb)
+   - [`1.3-Multicollinearity_Study_With_VIF`](/1-data_preprocessing/1.3-Multicollinearity_Study_With_VIF.ipynb)
+   - [`1.4-Correlation_Pruning`](/1-data_preprocessing/1.4-Correlation_Pruning.ipynb)
+   - [`1.5-Cherry_Picking_For_Regression`](/1-data_preprocessing/1.5-Cherry_Picking_For_Regression.ipynb)
+   - [`1.6-Cherry_Picking_For_Classification`](/1-data_preprocessing/1.6-Cherry_Picking_For_Classification.ipynb)
+- [`/2-torque_target_probabilistic_regression`](/2-torque_target_probabilistic_regression)
+   - [`2.1-Synthetic_Dataset`](/2-torque_target_probabilistic_regression/2.1-Synthetic_Dataset.ipynb)
+   - [`2.2-Torque_Target_Regression_Stochastic`](/2-torque_target_probabilistic_regression/2.2-Torque_Target_Regression_Stochastic.ipynb)
+   - [`2.3-Using_Learned_Regressor_To_Predict_Torque_Target`](/2-torque_target_probabilistic_regression/2.3-Using_Learned_Regressor_To_Predict_Torque_Target.ipynb)
+- [`/3-fault_detection`](/3-fault_detection)
+   - [`3.1-Fault_Detection`](/3-fault_detection/3.1-Fault_Detection.ipynb)
+- [`/4-qualitative_evaluation`](/4-qualitative_evaluation)
+   - [`4.1-Qualitative_Evaluation_PCA`](/4-qualitative_evaluation/4.1-Qualitative_Evaluation_PCA.ipynb)
+   - [`4.2-KNN_In_PCA_Domain`](/4-qualitative_evaluation/4.2-KNN_In_PCA_Domain.ipynb)
+   - [`4.3-Qualitative_Evaluation_t-SNE`](/4-qualitative_evaluation/4.3-Qualitative_Evaluation_t-SNE.ipynb)
+   - [`4.4-Qualitative_Evaluation_experiments`](/4-qualitative_evaluation/4.4-Qualitative_Evaluation_experiments.ipynb)
