@@ -3,6 +3,9 @@ import math
 import torch
 import torch.nn.functional as F
 
+"""
+Disclaimer: This code is not mine. It was taken from https://github.com/Blealtan/efficient-kan
+"""
 
 class KANLinear(torch.nn.Module):
     def __init__(

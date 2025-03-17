@@ -34,10 +34,11 @@ class PCA:
         plt.tight_layout()
         plt.show()
 
-    def plot_pca(self, labels=None, scale=0.5, ax=None, c=None, alpha=0.04, azim=235, is_3d=False) -> plt.axis:
+    def plot_pca(self, hue=None, labels:dict=None, scale=0.5, ax=None, c=None, alpha=0.04, azim=235, is_3d=False) -> plt.axis:
         """
         Plot a 2D or 3D PCA projection of the PCA components.
-        :param labels: The 0, 1 labels of the samples.
+        :param hue: The classes of each point.
+        :param labels: The name of each class of point specified by `hue`
         :param scale: The scale of the figure.
         :param ax: If provided, the axis to plot on. Otherwise, a new figure is created.
         :param c: the color of the scatter plot. Must be a dict if labels is provided.
@@ -46,6 +47,8 @@ class PCA:
         :param is_3d: if the plot is 3D.
         :return:
         """
+        if labels is None:
+            labels = {0: 'Healthy', 1: 'Faulty'}
         components = pd.DataFrame()
         for i in range(3 if is_3d else 2):
             components[f'PC{i + 1}'] = self.data.dot(self.loadings[i, :])
@@ -61,10 +64,11 @@ class PCA:
             c = {0: 'g', 1: 'r'}
         s = 0.5 * 750_000 / len(self.data)
         pcs = [f'PC{x + 1}' for x in range(3 if is_3d else 2)]
-        if labels is None:
+        if hue is None:
             ax.scatter(*[components[pc] for pc in pcs], alpha=alpha, s=s)
         else:
-            for label, name in {0: 'Healthy', 1: 'Faulty'}.items():
-                ax.scatter(*[components.loc[labels == label, pc] for pc in pcs],
-                           c=c[label], label=name, alpha=alpha, s=s)
+            for labels, name in labels.items():
+                ax.scatter(*[components.loc[hue == labels, pc] for pc in pcs],
+                           c=c[labels], label=name, alpha=alpha, s=s)
+        plt.legend(loc='upper right')
         return ax

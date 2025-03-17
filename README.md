@@ -28,13 +28,13 @@ You can run the notebook through the jupyter lab running `jupyter lab` in the ro
 
 More specifically, the notebooks are:
 
-- [`/1-data_preprocessing`](/1-data_preprocessing)
-   - [`1.1-Exploratory_Data_Analysis`](/1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb)
-   - [`1.2-Feature_Extraction`](/1-data_preprocessing/1.2-Feature_Extraction.ipynb)
-   - [`1.3-Multicollinearity_Study_With_VIF`](/1-data_preprocessing/1.3-Multicollinearity_Study_With_VIF.ipynb)
-   - [`1.4-Correlation_Pruning`](/1-data_preprocessing/1.4-Correlation_Pruning.ipynb)
-   - [`1.5-Cherry_Picking_For_Regression`](/1-data_preprocessing/1.5-Cherry_Picking_For_Regression.ipynb)
-   - [`1.6-Cherry_Picking_For_Classification`](/1-data_preprocessing/1.6-Cherry_Picking_For_Classification.ipynb)
+- [`/1-data_preprocessing`](/1-data_preprocessing) - We perform some EDA in 1.1 to familiarise ourselves with the dataset, then proceed to generate derived features to improve subsequent training. We then use techniques common in statistics and machine learning, such as VIF, Pearson's correlation, ANOVA and Kruskal-Wallis tests, to Cherry-Pick these generated features.
+   - [`1.1-Exploratory_Data_Analysis`](/1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb) - This notebook shows the distribution of the 7 features in the samples, also taking into account their faulty state. A Principal Component Analysis is used to embed the 7 features into 2 and 3 directions in order to visualize the dataset in one plot. Here we find out that the dataset is made of 2 distinct clusters of samples, one for samples having $np \lt ng$ and the other for samples having $np \gt ng$. In conclusion, a skewness study is carried out to show that any 10% subsample does preserve the topology of the whole dataset.
+   - [`1.2-Multicollinearity_Study_With_VIF`](/1-data_preprocessing/1.2-Multicollinearity_Study_With_VIF.ipynb) - We prove in this notebook that there exists a multicollinearity problem in the original dataset. More specifically, we find out that $np\approx  -1.06\times ng + 165$.
+   - [`1.3-Feature_Extraction`](/1-data_preprocessing/1.3-Feature_Extraction.ipynb) - Here polynomial features up to degree 3, np/ng ratio, density altitude and air density normalization are generated. In total, we end up with 81 features. A selection is needed.
+   - [`1.4-Correlation_Pruning`](/1-data_preprocessing/1.4-Correlation_Pruning.ipynb) - Therefore, using the Pearson we begin with pruning all highly correlated features. Then, we explain why some of them present a correlation of almost 1.
+   - [`1.5-Cherry_Picking_For_Regression`](/1-data_preprocessing/1.5-Cherry_Picking_For_Regression.ipynb) - We combine Pearson's correlation with $torque_{target}$ and ANOVA F-test to select the 3 most discriminant features.
+   - [`1.6-Cherry_Picking_For_Classification`](/1-data_preprocessing/1.6-Cherry_Picking_For_Classification.ipynb) - We combine Pearson's correlation with $faulty$, ANOVA F-test and Kruskal-Wallis test to select the 5 most discriminant features.
 - [`/2-torque_target_probabilistic_regression`](/2-torque_target_probabilistic_regression)
    - [`2.1-Synthetic_Dataset`](/2-torque_target_probabilistic_regression/2.1-Synthetic_Dataset.ipynb)
    - [`2.2-Torque_Target_Regression_Stochastic`](/2-torque_target_probabilistic_regression/2.2-Torque_Target_Regression_Stochastic.ipynb)
