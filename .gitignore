@@ -3,3 +3,5 @@ dataset/**/*.csv
 figures/
 model/
 **/.ipynb_checkpoints
+**/__pycache__/
+**/.pyc
