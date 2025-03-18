@@ -1,12 +1,16 @@
 import abc
+import math
 from datetime import datetime
 from math import ceil
+from random import random
 from typing import Literal
 
+import networkx as nx
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import torch
+import torch.nn.functional as F
 from kan import KAN as Py_KAN
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
@@ -56,7 +60,8 @@ class PHMNetwork(nn.Module, abc.ABC):
         )
         return torch.where(valid_mask, scores, -100.0)
 
-    def __init__(self, layers: list[int], task: Literal['regression', 'classification'], device=None):
+    def __init__(self, layers: list[int] | list[list[int]], task: Literal['regression', 'classification'],
+                 device='cpu'):
         super().__init__()
         self.layers = layers
         self.task: Literal['regression', 'classification'] = task
@@ -76,10 +81,11 @@ class PHMNetwork(nn.Module, abc.ABC):
             return x
 
     def save(self, name: str):
-        torch.save(self.model.state_dict(), f'models/{name}_{__class__.__name__}_layers-{"-".join(str(self.layers))}')
+        torch.save(self.model.state_dict(), f'models/{name}_{self.__class__.__name__}_layers-{str(self.layers)}')
 
     def load(self, name: str):
-        self.model.load_state_dict(torch.load(f'models/{name}', weights_only=True))
+        self.model.load_state_dict(
+            torch.load(f'models/{name}_{self.__class__.__name__}_layers-{str(self.layers)}', weights_only=True))
 
     @abc.abstractmethod
     def reset(self):
@@ -224,7 +230,7 @@ class PHMNetwork(nn.Module, abc.ABC):
 
 
 class PyKAN(PHMNetwork):
-    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, device=None):
+    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, device='cpu'):
         super(PyKAN, self).__init__(layers, task, device)
         self.grid_size = grid_size
         self.model = None
@@ -240,7 +246,7 @@ class PyKAN(PHMNetwork):
 
 
 class EfficientKAN(PHMNetwork):
-    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, device=None):
+    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, device='cpu'):
         super(EfficientKAN, self).__init__(layers, task, device)
         self.grid_size = grid_size
         self.model = None
@@ -250,11 +256,56 @@ class EfficientKAN(PHMNetwork):
         self.model = EffKAN(self.layers, grid_size=self.grid_size, spline_order=3).to(self.device)
 
     def plot(self, scale=1, in_vars=None):
-        pass
+        base_colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+
+        def random_color():
+            return random(), random(), random()
+
+        colors = [base_colors[x] if x < len(base_colors) else random_color()
+                  for x in range(max(map(lambda l: l.in_features, self.model.layers)))]
+        for layer in reversed(self.model.layers):
+            fig, axes = plt.subplots(1, layer.in_features * layer.out_features,
+                                     figsize=(2 * scale * layer.in_features * layer.out_features, 2 * scale))
+            for i in range(layer.in_features):
+                for j in range(layer.out_features):
+                    x_vals = torch.linspace(-2, 2, 1000)
+
+                    # B-Splines
+                    if len(layer.grid) <= j:
+                        continue
+                    grid = layer.grid[j, :].unsqueeze(0)  # The knots
+                    x = x_vals.unsqueeze(-1).unsqueeze(-1)
+                    bases = ((x >= grid[:, :-1]) & (x < grid[:, 1:])).to(
+                        x.dtype)  # Determine the interval for each point
+                    for k in range(1, layer.spline_order + 1):
+                        bases = (
+                                        (x - grid[:, : -(k + 1)])
+                                        / (grid[:, k:-1] - grid[:, : -(k + 1)])
+                                        * bases[:, :, :-1]
+                                ) + (
+                                        (grid[:, k + 1:] - x)
+                                        / (grid[:, k + 1:] - grid[:, 1:(-k)])
+                                        * bases[:, :, 1:]
+                                )
+
+                    y_vals = F.linear(bases.squeeze(), layer.scaled_spline_weight[j, i])
+                    y_vals += (layer.base_activation(x_vals) * layer.base_weight[j, i])
+
+                    alpha = math.tanh(abs(3 * layer.spline_scaler.view(layer.out_features, -1)[j, i].item()))
+                    if type(axes) is np.ndarray:
+                        axes[i * layer.out_features + j].plot(x_vals.cpu().detach().numpy(),
+                                                              y_vals.cpu().detach().numpy(),
+                                                              alpha=alpha, color=colors[i])
+                        axes[i * layer.out_features + j].grid(True)
+                    else:
+                        axes.plot(x_vals, y_vals, alpha=alpha, color=colors[i])
+                        axes.grid(True)
+
+        plt.show()
 
 
 class MLP(PHMNetwork):
-    def __init__(self, layers, task: Literal['regression', 'classification'], device=None):
+    def __init__(self, layers, task: Literal['regression', 'classification'], device='cpu'):
         super(MLP, self).__init__(layers, task, device)
         self.model = None
         self.reset()
@@ -268,4 +319,35 @@ class MLP(PHMNetwork):
         self.model = nn.Sequential(*layers).to(self.device)
 
     def plot(self, scale=1, in_vars=None):
-        pass
+        layers = [self.model[0].in_features]
+        linears = list(filter(lambda l: type(l) == torch.nn.modules.linear.Linear, self.model))
+        for l in linears:
+            layers.append(l.out_features)
+        # layers = [6, 50, 50, 2]
+        G = nx.Graph()
+        pos = {}
+        node_count = 0
+        layer_gap = 5
+        node_gap = 1
+        max_layer = max(layers)
+
+        for i, layer_size in enumerate(layers):
+            delta = max_layer - layer_size
+            for j in range(layer_size):
+                G.add_node(node_count)
+                pos[node_count] = (i * layer_gap, (j + delta // 2) * node_gap)
+                if i > 0:
+                    for k in range(layers[i - 1]):
+                        G.add_edge(node_count - layers[i - 1] + k - j, node_count,
+                                   weight=linears[i - 1].weight[j, k].item())
+                node_count += 1
+
+        weights = [G[u][v]['weight'] for u, v in G.edges()]
+        plt.figure(1, figsize=(16, 4))
+        plt.hist(weights, bins='auto', edgecolor='black')
+        plt.grid()
+        plt.title('Weights distribution')
+        plt.figure(3, figsize=(scale*12, scale*16))
+        nx.draw(G, pos, with_labels=True, node_size=150, node_color="skyblue", edge_cmap=plt.colormaps['PiYG'],
+                edge_color=weights, edge_vmin=-0.5, edge_vmax=0.5, font_size=10, width=5)
+        plt.show()
