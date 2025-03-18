@@ -1,11 +1,16 @@
+from time import time
 from typing import Literal
 
+import numpy as np
 import pandas as pd
+import torch
+from torch import Tensor, tensor
 
 """
-This module contains functions to read, split and standardize the dataset.
-Author: Valerio Morelli (@MrPio)
+Contains functions to read, split and standardize the dataset.
 """
+
+__author__ = 'Valerio Morelli (@MrPio)'
 __cached_df = {}
 
 
@@ -45,3 +50,56 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
         return pd.concat([df_x, df_y], axis='columns')
     else:
         return df_x, df_y
+
+
+def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, max=1, seed=None, device='cpu') -> tuple[
+    tuple[Tensor, Tensor], tuple[Tensor, Tensor], tuple[Tensor, Tensor], dict[str, float]]:
+    """Split the dataset into train, valid, and test sets.
+
+    Standardize the sets using only training means and stds.
+    :param X: The dataframe of features.
+    :param y: The series of ground truths.
+    :param train_ratio: The percentage of data to use for training.
+    :param max: How much of the dataset to use.
+    :param seed: The seed to use for random sampling.
+    :param device: The device to use for the tensors.
+    :return: train set (X, y), valid set (X, y), test set (X, y), and a dict of train means and std used to standardize the sets.
+    """
+
+    dataset_x = tensor(X.values, dtype=torch.float32, device=device)
+    dataset_y = tensor(y, dtype=torch.float32, device=device).unsqueeze(1)
+    test_ratio = (max - train_ratio) / 2.0
+    size = len(X)
+    np.random.seed(int(time()) if seed is None else seed)
+    random_indices = np.random.choice(size, size=size, replace=False)
+
+    # Train set
+    train_x = dataset_x[random_indices[:int(size * train_ratio)]]
+    train_y = dataset_y[random_indices[:int(size * train_ratio)]]
+    train_x_mean = train_x.mean(dim=0)
+    train_x_std = train_x.std(dim=0)
+    train_y_mean = train_y.mean(dim=0)
+    train_y_std = train_y.std(dim=0)
+    normalizations = {}
+    for i, col in enumerate(X.columns):
+        normalizations[f'{col}_mean'] = train_x_mean[i].item()
+        normalizations[f'{col}_std'] = train_x_std[i].item()
+    normalizations['y'] = train_y_mean.item()
+    normalizations['y'] = train_y_std.item()
+
+    train_x = (train_x - train_x_mean) / train_x_std
+    train_y = (train_y - train_y_mean) / train_y_std
+
+    # Valid set
+    valid_x = dataset_x[random_indices[int(size * train_ratio):int(size * (train_ratio + test_ratio))]]
+    valid_y = dataset_y[random_indices[int(size * train_ratio):int(size * (train_ratio + test_ratio))]]
+    valid_x = (valid_x - train_x_mean) / train_x_std
+    valid_y = (valid_y - train_y_mean) / train_y_std
+
+    # Test set
+    test_x = dataset_x[random_indices[int(size * (train_ratio + test_ratio)):int(size * max)]]
+    test_y = dataset_y[random_indices[int(size * (train_ratio + test_ratio)):int(size * max)]]
+    test_x = (test_x - train_x_mean) / train_x_std
+    test_y = (test_y - train_y_mean) / train_y_std
+
+    return (train_x, train_y), (valid_x, valid_y), (test_x, test_y), normalizations

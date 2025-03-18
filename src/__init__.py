@@ -1,2 +1,5 @@
-from .dataset import read_dataset
-from .pca import PCA
+from .dataset import *
+from .pca import *
+from .networks import *
+
+__author__ = 'Valerio Morelli (@MrPio)'

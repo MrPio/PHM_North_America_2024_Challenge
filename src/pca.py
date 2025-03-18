@@ -3,6 +3,12 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA as sklPCA
 
+"""
+Contains the PCA class to perform and visualize both 2D and 3D PCA.
+"""
+
+__author__ = 'Valerio Morelli (@MrPio)'
+
 
 class PCA:
     def __init__(self, data: pd.DataFrame, loadings=None):
@@ -34,7 +40,8 @@ class PCA:
         plt.tight_layout()
         plt.show()
 
-    def plot_pca(self, hue=None, labels:dict=None, scale=0.5, ax=None, c=None, alpha=0.04, azim=235, is_3d=False) -> plt.axis:
+    def plot_pca(self, hue=None, labels: dict = None, scale=0.5, ax=None, c=None, alpha=0.04, azim=235,
+                 is_3d=False) -> plt.axis:
         """
         Plot a 2D or 3D PCA projection of the PCA components.
         :param hue: The classes of each point.

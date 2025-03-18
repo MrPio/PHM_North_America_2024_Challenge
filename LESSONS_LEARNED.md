@@ -5,4 +5,4 @@ In the lines, a Gaussian NLL Loss is in use. Due to PyTorch operations Broadcast
     mu, log_var = model(x)
     loss = criterion(mu, y.squeeze(), torch.exp(log_var))
 ```
-Here I had `squeeze()` `y` to change its shape from `(batch_size, )` to `(batch_size, 1)`. 
+Here I had to `squeeze()` `y` to change its shape from `(batch_size, )` to `(batch_size, 1)`. 
