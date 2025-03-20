@@ -159,7 +159,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         Returns a dict of metrics.
         """
         test_x, test_y = testset
-        self.model.eval()
+        self.eval()
         scores = []
         score_len = 0
         test_losses = []
@@ -172,11 +172,11 @@ class PHMNetwork(nn.Module, abc.ABC):
                 loss = self.criterion(mu, y.view(-1), torch.exp(log_var))
             else:
                 confidence = self(x).squeeze()
-                score_t = torch.sum(PHMNetwork.score(confidence, y)).item()
+                loss = self.criterion(confidence, y.view(-1).float())
+                score_t = torch.sum(PHMNetwork.score(confidence, y.view(-1))).item()
                 score_len += confidence.size(0)
                 scores.append(score_t)
                 y_pred = torch.cat((y_pred, (torch.sigmoid(confidence) > 0.5).cpu()))
-                loss = self.criterion(confidence, y.float())
             loss.backward()
             test_losses.append(loss.item())
         metrics = {'test_loss': np.mean(test_losses)}
@@ -196,10 +196,15 @@ class PHMNetwork(nn.Module, abc.ABC):
         results = pd.DataFrame(
             columns=['test_loss'] if self.task == 'regression' else ['avg_test_score', 'accuracy', 'precision',
                                                                      'recall', 'f1'])
+        normalizations_df = pd.DataFrame(
+            columns=[f'{col}_mean' for col in X.columns] + [f'{col}_std' for col in X.columns] + ['y_mean', 'y_std'])
         start_date = datetime.now()
         for i in range(times):
             print(f'Time {i + 1}/{times}===========================')
-            trainset, validset, testset, normalizations = split_dataset(X, y, train_ratio, device=self.device)
+            trainset, validset, testset, normalizations = split_dataset(X, y, train_ratio,
+                                                                        standardize_y=self.task != 'classification',
+                                                                        device=self.device)
+            normalizations_df.loc[i] = normalizations
             self.reset()
             self.fit(trainset, validset, optim.Adam(self.parameters(), lr=0.05), epochs, prefix=prefix,
                      batch_size=batch_size)
@@ -223,9 +228,11 @@ class PHMNetwork(nn.Module, abc.ABC):
                     plt.show()
 
             if prefix is not None:
-                self.save(f'torque_target_stochastic_{prefix}_{start_date.strftime("%H-%M-%S")}_{i}')
+                self.save(f'torque_target_stochastic_{prefix}_{i}')
         if prefix is not None:
-            results.to_csv(f'results/{prefix}_{start_date.strftime("%d %B %y %H-%M-%S")}.csv', index=False)
+            results.to_csv(f'results/{prefix}.csv', index=False)
+            normalizations_df.to_csv(f'results/{prefix}_norm.csv',
+                                     index=False)
         return results
 
 
@@ -240,7 +247,7 @@ class PyKAN(PHMNetwork):
         self.model = Py_KAN(width=self.layers, grid=self.grid_size, k=3, device=self.device)
 
     def plot(self, scale=1, in_vars=None):
-        self.model.plot(scale=1.15, in_vars=in_vars,
+        self.model.plot(scale=scale, in_vars=in_vars,
                         out_vars=['$\\mu$', '$\\sigma$'] if self.task == 'regression' else ['$P(faulty)$'],
                         varscale=0.45 * 8 / self.layers[0][0], figsize_base=(14, 10))
 
@@ -256,6 +263,10 @@ class EfficientKAN(PHMNetwork):
         self.model = EffKAN(self.layers, grid_size=self.grid_size, spline_order=3).to(self.device)
 
     def plot(self, scale=1, in_vars=None):
+        """This is an implementation of mine.
+
+        The original implementation of EfficientKAN by Blealtan lacks this feature. It's just a demo, so further refinement is needed.
+        """
         base_colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
         def random_color():
@@ -347,7 +358,7 @@ class MLP(PHMNetwork):
         plt.hist(weights, bins='auto', edgecolor='black')
         plt.grid()
         plt.title('Weights distribution')
-        plt.figure(3, figsize=(scale*12, scale*16))
+        plt.figure(3, figsize=(scale * 12, scale * 16))
         nx.draw(G, pos, with_labels=True, node_size=150, node_color="skyblue", edge_cmap=plt.colormaps['PiYG'],
                 edge_color=weights, edge_vmin=-0.5, edge_vmax=0.5, font_size=10, width=5)
         plt.show()

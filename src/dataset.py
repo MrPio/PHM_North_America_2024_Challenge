@@ -39,7 +39,10 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
     stage_id = ['original', 'preprocessed', 'regression', 'classification'].index(stage)
     df_x = __load_cached_df(f'../dataset/{stage_id}-{stage}/X.csv').drop(columns=['id'], errors='ignore')
     df_y = __load_cached_df(f'../dataset/{stage_id}-{stage}/y.csv').drop(columns=['id'], errors='ignore')
-    df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
+    if stage == 'classification':
+        df_x['trq_margin'] = __load_cached_df(f'../2-torque_target_probabilistic_regression/predictions.csv')['trq_margin']
+    else:
+        df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
     if normalization == 'normalize':
         df_x = (df_x - df_x.min()) / (df_x.max() - df_x.min() + 1e-10)
         df_y = (df_y - df_y.min()) / (df_y.max() - df_y.min() + 1e-10)
@@ -52,7 +55,8 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
         return df_x, df_y
 
 
-def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, max=1, seed=None, device='cpu') -> tuple[
+def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, standardize_y=True, max=1, seed=None,
+                  device='cpu') -> tuple[
     tuple[Tensor, Tensor], tuple[Tensor, Tensor], tuple[Tensor, Tensor], dict[str, float]]:
     """Split the dataset into train, valid, and test sets.
 
@@ -60,6 +64,7 @@ def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, max=1, seed=N
     :param X: The dataframe of features.
     :param y: The series of ground truths.
     :param train_ratio: The percentage of data to use for training.
+    :param standardize_y: The classification task does not require standardization of the ground truths.
     :param max: How much of the dataset to use.
     :param seed: The seed to use for random sampling.
     :param device: The device to use for the tensors.
@@ -84,22 +89,26 @@ def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, max=1, seed=N
     for i, col in enumerate(X.columns):
         normalizations[f'{col}_mean'] = train_x_mean[i].item()
         normalizations[f'{col}_std'] = train_x_std[i].item()
-    normalizations['y'] = train_y_mean.item()
-    normalizations['y'] = train_y_std.item()
+    if standardize_y:
+        normalizations['y_mean'] = train_y_mean.item()
+        normalizations['y_std'] = train_y_std.item()
 
     train_x = (train_x - train_x_mean) / train_x_std
-    train_y = (train_y - train_y_mean) / train_y_std
+    if standardize_y:
+        train_y = (train_y - train_y_mean) / train_y_std
 
     # Valid set
     valid_x = dataset_x[random_indices[int(size * train_ratio):int(size * (train_ratio + test_ratio))]]
     valid_y = dataset_y[random_indices[int(size * train_ratio):int(size * (train_ratio + test_ratio))]]
     valid_x = (valid_x - train_x_mean) / train_x_std
-    valid_y = (valid_y - train_y_mean) / train_y_std
+    if standardize_y:
+        valid_y = (valid_y - train_y_mean) / train_y_std
 
     # Test set
     test_x = dataset_x[random_indices[int(size * (train_ratio + test_ratio)):int(size * max)]]
     test_y = dataset_y[random_indices[int(size * (train_ratio + test_ratio)):int(size * max)]]
     test_x = (test_x - train_x_mean) / train_x_std
-    test_y = (test_y - train_y_mean) / train_y_std
+    if standardize_y:
+        test_y = (test_y - train_y_mean) / train_y_std
 
     return (train_x, train_y), (valid_x, valid_y), (test_x, test_y), normalizations

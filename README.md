@@ -38,7 +38,7 @@ More specifically, the notebooks are:
 - [`/2-torque_target_probabilistic_regression`](/2-torque_target_probabilistic_regression)
    - [`2.1-Synthetic_Dataset`](/2-torque_target_probabilistic_regression/2.1-Synthetic_Dataset.ipynb)
    - [`2.2-Torque_Target_Regression_Stochastic`](/2-torque_target_probabilistic_regression/2.2-Torque_Target_Regression_Stochastic.ipynb)
-   - [`2.3-Using_Learned_Regressor_To_Predict_Torque_Target`](/2-torque_target_probabilistic_regression/2.3-Using_Learned_Regressor_To_Predict_Torque_Target.ipynb)
+   - [`2.3-Using_Learned_Regressor_To_Predict_Torque_Target`](/2-torque_target_probabilistic_regression/2.3-Generating_Torque_Margin_Predictions.ipynb)
 - [`/3-fault_detection`](/3-fault_detection)
    - [`3.1-Fault_Detection`](/3-fault_detection/3.1-Fault_Detection.ipynb)
 - [`/4-qualitative_evaluation`](/4-qualitative_evaluation)
