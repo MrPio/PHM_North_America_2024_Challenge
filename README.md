@@ -24,7 +24,7 @@ This repository contains 14 Jupyter notebook, structured in according to the str
 You can run the notebook through the jupyter lab running `jupyter lab` in the root directory, or use any IDE such as *PyCharm* or *Visual Studio Code* that handle that for you.
 
 > [!NOTE]  
-> As I hadn't included the `.csv` files due to their size, you should run all the notebooks one after the other. 
+> As I hadn't included the `.csv` files due to their size, you should run all the notebooks one after the other, in order. To give you an idea of how much time each cell takes to complete, I have given the execution time on my *i7-10750H* as a comment above each cell. Please also note that **no GPU is required to run these notebooks**, even the training should work fine on the CPU, as the networks involved are very small.
 
 More specifically, the notebooks are:
 
@@ -37,7 +37,7 @@ More specifically, the notebooks are:
    - [`1.6-Cherry_Picking_For_Classification`](/1-data_preprocessing/1.6-Cherry_Picking_For_Classification.ipynb) - We combine Pearson's correlation with $faulty$, ANOVA F-test and Kruskal-Wallis test to select the 5 most discriminant features.
 - [`/2-torque_target_probabilistic_regression`](/2-torque_target_probabilistic_regression)
    - [`2.1-Synthetic_Dataset`](/2-torque_target_probabilistic_regression/2.1-Synthetic_Dataset.ipynb)
-   - [`2.2-Torque_Target_Regression_Stochastic`](/2-torque_target_probabilistic_regression/2.2-Torque_Target_Regression_Stochastic.ipynb)
+   - [`2.2-Torque_Target_Regression_Stochastic`](/2-torque_target_probabilistic_regression/2.2-Torque_Target_Regression.ipynb)
    - [`2.3-Using_Learned_Regressor_To_Predict_Torque_Target`](/2-torque_target_probabilistic_regression/2.3-Generating_Torque_Margin_Predictions.ipynb)
 - [`/3-fault_detection`](/3-fault_detection)
    - [`3.1-Fault_Detection`](/3-fault_detection/3.1-Fault_Detection.ipynb)

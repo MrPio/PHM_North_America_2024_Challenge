@@ -18,7 +18,7 @@ class PCA:
         if loadings is not None:
             self.loadings = loadings
         else:
-            self.loadings = self.pca.components_[:3]
+            self.loadings = self.pca.components_
 
     def plot_variance(self, scale=0.5):
         plt.figure(figsize=(12 * scale, 6 * scale))
@@ -30,7 +30,8 @@ class PCA:
         plt.show()
 
     def plot_loadings(self, scale=0.5, is_3d=False):
-        fig, ax = plt.subplots(1, 3 if is_3d else 2, figsize=(14 * scale, 6 * scale))
+        cols = 3 if is_3d else 2
+        fig, ax = plt.subplots(1, cols, figsize=(6 * cols * scale, 6 * scale))
         for i in range(3 if is_3d else 2):
             norm = plt.Normalize(0, max(self.loadings[i]))
             colors = plt.cm.viridis(norm(abs(self.loadings[i])))
@@ -77,5 +78,8 @@ class PCA:
             for labels, name in labels.items():
                 ax.scatter(*[components.loc[hue == labels, pc] for pc in pcs],
                            c=c[labels], label=name, alpha=alpha, s=s)
-        plt.legend(loc='upper right')
+            plt.legend(loc='upper right')
         return ax
+
+    def get_components(self, num) -> pd.DataFrame:
+        return pd.DataFrame(self.data.values.dot(self.loadings[:num, :].transpose()), columns=[f'PC{i + 1}' for i in range(num)])

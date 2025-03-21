@@ -27,30 +27,49 @@ def __load_cached_df(path: str) -> pd.DataFrame:
 
 
 def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'classification'],
-                 normalization: Literal['normalize', 'standardize'] = None, merge=False) -> tuple[
-                                                                                                pd.DataFrame, pd.DataFrame] | pd.DataFrame:
+                 normalization: Literal['normalize', 'standardize'] = None, testset=False, merge=False) -> tuple[
+                                                                                                               pd.DataFrame, pd.DataFrame] | pd.DataFrame:
     """
     Read the original dataset and calculate the trq_target ground truth.
     :param stage: The kind of dataset to read. Can be 'original', 'preprocessed', 'regression' or 'classification'.
     :param normalization: If 'normalize' or 'standardize' is provided, the features will be normalized or standardized.
+    :param testset: Whether to consider the unlabelled test set or the labelled trainset.
     :param merge: If True, the features and the ground truths will be merged into one dataframe.
     :return: One dataframe for features and one for regression and fault detection ground truths
     """
     stage_id = ['original', 'preprocessed', 'regression', 'classification'].index(stage)
-    df_x = __load_cached_df(f'../dataset/{stage_id}-{stage}/X.csv').drop(columns=['id'], errors='ignore')
-    df_y = __load_cached_df(f'../dataset/{stage_id}-{stage}/y.csv').drop(columns=['id'], errors='ignore')
-    if stage == 'classification':
-        df_x['trq_margin'] = __load_cached_df(f'../2-torque_target_probabilistic_regression/predictions.csv')['trq_margin']
+    if testset:
+        if stage == 'original':
+            df_valid = __load_cached_df(f'../dataset/0-original/X_validation.csv').drop(columns=['id'], errors='ignore')
+            df_test = __load_cached_df(f'../dataset/0-original/X_test.csv').drop(columns=['id'], errors='ignore')
+            df_x = pd.concat([df_valid, df_test], axis='rows', ignore_index=True)
+        else:
+            df_x = __load_cached_df(f'../dataset/{stage_id}-{stage}/X_test.csv').drop(columns=['id'], errors='ignore')
     else:
+        df_x = __load_cached_df(f'../dataset/{stage_id}-{stage}/X.csv').drop(columns=['id'], errors='ignore')
+        df_y = __load_cached_df(f'../dataset/{stage_id}-{stage}/y.csv').drop(columns=['id'], errors='ignore')
+
+    if stage == 'classification':
+        df_x['trq_margin'] = __load_cached_df(
+            f'../2-torque_target_probabilistic_regression/predictions_{"test" if testset else "train"}.csv')[
+            'trq_margin']
+    elif not testset:
         df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
+
     if normalization == 'normalize':
         df_x = (df_x - df_x.min()) / (df_x.max() - df_x.min() + 1e-10)
-        df_y = (df_y - df_y.min()) / (df_y.max() - df_y.min() + 1e-10)
-    if normalization == 'standardize':
+        if not testset:
+            cols = df_y.columns.difference(["faulty"])
+            df_y[cols] = (df_y[cols] - df_y[cols].min()) / (df_y[cols].max() - df_y[cols].min() + 1e-10)
+    elif normalization == 'standardize':
         df_x = (df_x - df_x.mean()) / df_x.std()
-        df_y = (df_y - df_y.mean()) / df_y.std()
-    if merge:
+        if not testset:
+            cols = df_y.columns.difference(["faulty"])
+            df_y[cols] = (df_y[cols] - df_y[cols].mean()) / df_y[cols].std()
+    if merge and not testset:
         return pd.concat([df_x, df_y], axis='columns')
+    elif testset:
+        return df_x
     else:
         return df_x, df_y
 
