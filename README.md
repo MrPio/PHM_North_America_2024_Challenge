@@ -10,21 +10,44 @@ Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm202
 ### 2️⃣ *EDA and experiments with KANs* [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19074286/Gruppo.A1.seconda.revisione.pdf) 
 ### 3️⃣ *Putting it all together* [`.PPTX`](https://github.com/user-attachments/files/19250163/Gruppo.A1.terza.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19250162/Gruppo.A1.terza.revisione.pdf) 
 
-## 📙 How this repository is structured
+
+## ⚙️ How to run
+
+### Prerequisites
+
+- **Python 3.7+**
+- **pip**
+- Optionally, [**virtualenv**](https://virtualenv.pypa.io/) for managing environments
+
+> [!IMPORTANT]  
+> Before running the notebooks, make sure to extract the [`\dataset\0-original\dataset.zip`](/dataset/0-original/dataset.zip) archive!
+
+1. [Optional] You can create and enter a virtual env with
+  ```shell
+  python3 -m venv venv
+  source venv/bin/activate # "venv\Scripts\activate" on Windows
+  ```
+2. Run `pip install -r requirements.txt` in the root of the repository.
+3. Run `jupyter lab` in the root of the repository to enter the web-based jupyter environment or use the tools provided by your favourite IDE.
+
+You can now begin running the notebooks in sequence, starting from [1.1](1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb).
+
+> [!TIP]  
+> To give you an idea of how much time each cell takes to complete, I have given the execution time on my *i7-10750H* as a comment above each cell. Please also note that **no GPU is required to run these notebooks**, even the training should work fine on the CPU, as the networks involved are very small.
+
+## 📌 How this repository is structured
 
 This repository contains 14 Jupyter notebook, structured in according to the strategy devised to tackle the challenge, shown in the following map.
 
 <p align="center">
-    <img width="65%" src="img/strategy_map.png"/>
+    <img width="75%" src="img/strategy_map.png"/>
 </p>
 
-> [!IMPORTANT]  
-> Before running the notebooks, make sure to extract the [`\dataset\0-original\dataset.zip`](/dataset/0-original/dataset.zip) archive and to run `pip install -r requirements.txt`. Then, you can begin running the notebooks in sequence, starting from [1.1](1-data_preprocessing/1.1-Exploratory_Data_Analysis.ipynb).
 
 You can run the notebook through the jupyter lab running `jupyter lab` in the root directory, or use any IDE such as *PyCharm* or *Visual Studio Code* that handle that for you.
 
 > [!NOTE]  
-> As I hadn't included the `.csv` files due to their size, you should run all the notebooks one after the other, in order. To give you an idea of how much time each cell takes to complete, I have given the execution time on my *i7-10750H* as a comment above each cell. Please also note that **no GPU is required to run these notebooks**, even the training should work fine on the CPU, as the networks involved are very small.
+> As I haven't included the `.csv` files due to their size, you should run all the notebooks one after the other, in order.
 
 More specifically, the notebooks are:
 
