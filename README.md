@@ -40,7 +40,7 @@ You can now begin running the notebooks in sequence, starting from [1.1](1-data_
 This repository contains 14 Jupyter notebook, structured in according to the strategy devised to tackle the challenge, shown in the following map.
 
 <p align="center">
-    <img width="75%" src="img/strategy_map.png"/>
+    <img width="80%" src="https://github.com/user-attachments/assets/37402303-b016-4cd3-80e5-1c7d0b869757"/>
 </p>
 
 
