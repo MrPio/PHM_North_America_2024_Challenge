@@ -6,9 +6,9 @@ Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm202
 
 <img height="150rem" align="right" src="https://github.com/user-attachments/assets/9d513014-9f84-4387-b68e-7c7941bad89d"/>
 
-### 1️⃣ *Preliminary study on the SOTA* [`.PPTX`](https://github.com/user-attachments/files/19043133/Gruppo.A1.prima.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19043132/Gruppo.A1.prima.revisione.pdf) 
-### 2️⃣ *EDA and experiments with KANs* [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19074286/Gruppo.A1.seconda.revisione.pdf) 
-### 3️⃣ *Putting it all together* [`.PPTX`](https://github.com/user-attachments/files/19250163/Gruppo.A1.terza.revisione.pptx) [`.PDF`](https://github.com/user-attachments/files/19250162/Gruppo.A1.terza.revisione.pdf) 
+### 1️⃣ *Preliminary SOTA study* [`.PPTX`](https://github.com/user-attachments/files/19043133/Gruppo.A1.prima.revisione.pptx) [`.PDF`](slideshows/1-Preliminary_SOTA_study.pdf) 
+### 2️⃣ *EDA and experiments with KANs* [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](slideshows/2-EDA-And-Experiments-With-KANs.pdf) 
+### 3️⃣ *Putting it all together* [`.PPTX`](https://github.com/user-attachments/files/19250163/Gruppo.A1.terza.revisione.pptx) [`.PDF`](slideshows/3-Putting-It-All-Together.pdf) 
 
 
 ## ⚙️ How to run
