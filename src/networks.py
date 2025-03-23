@@ -339,7 +339,7 @@ class MLP(PHMNetwork):
         pos = {}
         node_count = 0
         layer_gap = 5
-        node_gap = 1
+        node_gap = 0.1
         max_layer = max(layers)
 
         for i, layer_size in enumerate(layers):
@@ -358,7 +358,7 @@ class MLP(PHMNetwork):
         plt.hist(weights, bins='auto', edgecolor='black')
         plt.grid()
         plt.title('Weights distribution')
-        plt.figure(3, figsize=(scale * 12, scale * 16))
-        nx.draw(G, pos, with_labels=True, node_size=150, node_color="skyblue", edge_cmap=plt.colormaps['PiYG'],
+        plt.figure(3, figsize=(scale * 16, scale * 12))
+        nx.draw(G, pos, with_labels=True, node_size=300, node_color="skyblue", edge_cmap=plt.colormaps['PiYG'],
                 edge_color=weights, edge_vmin=-0.5, edge_vmax=0.5, font_size=10, width=5)
         plt.show()

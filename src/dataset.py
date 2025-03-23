@@ -14,11 +14,12 @@ __author__ = 'Valerio Morelli (@MrPio)'
 __cached_df = {}
 
 
-def __load_cached_df(path: str) -> pd.DataFrame:
+def __load_df(path: str, use_cache=True) -> pd.DataFrame:
     """
     Read the dataframe from disk, if it is not already in cache.
+    :param use_cache: Whether to fetch the dataset from cache when possible.
     """
-    if path in __cached_df:
+    if use_cache and path in __cached_df:
         return __cached_df[path].copy()
     else:
         df = pd.read_csv(path)
@@ -27,32 +28,38 @@ def __load_cached_df(path: str) -> pd.DataFrame:
 
 
 def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'classification'],
-                 normalization: Literal['normalize', 'standardize'] = None, testset=False, merge=False) -> tuple[
-                                                                                                               pd.DataFrame, pd.DataFrame] | pd.DataFrame:
+                 normalization: Literal['normalize', 'standardize'] = None, testset=False, merge=False,
+                 use_cache=True) -> tuple[pd.DataFrame, pd.DataFrame] | pd.DataFrame:
     """
     Read the original dataset and calculate the trq_target ground truth.
     :param stage: The kind of dataset to read. Can be 'original', 'preprocessed', 'regression' or 'classification'.
     :param normalization: If 'normalize' or 'standardize' is provided, the features will be normalized or standardized.
     :param testset: Whether to consider the unlabelled test set or the labelled trainset.
     :param merge: If True, the features and the ground truths will be merged into one dataframe.
+    :param use_cache: Whether to fetch the dataset from cache when possible.
     :return: One dataframe for features and one for regression and fault detection ground truths
     """
     stage_id = ['original', 'preprocessed', 'regression', 'classification'].index(stage)
     if testset:
         if stage == 'original':
-            df_valid = __load_cached_df(f'../dataset/0-original/X_validation.csv').drop(columns=['id'], errors='ignore')
-            df_test = __load_cached_df(f'../dataset/0-original/X_test.csv').drop(columns=['id'], errors='ignore')
+            df_valid = (__load_df(f'../dataset/0-original/X_validation.csv', use_cache=use_cache)
+                        .drop(columns=['id'], errors='ignore'))
+            df_test = (__load_df(f'../dataset/0-original/X_test.csv', use_cache=use_cache)
+                       .drop(columns=['id'], errors='ignore'))
             df_x = pd.concat([df_valid, df_test], axis='rows', ignore_index=True)
         else:
-            df_x = __load_cached_df(f'../dataset/{stage_id}-{stage}/X_test.csv').drop(columns=['id'], errors='ignore')
+            df_x = (__load_df(f'../dataset/{stage_id}-{stage}/X_test.csv', use_cache=use_cache)
+                    .drop(columns=['id'], errors='ignore'))
     else:
-        df_x = __load_cached_df(f'../dataset/{stage_id}-{stage}/X.csv').drop(columns=['id'], errors='ignore')
-        df_y = __load_cached_df(f'../dataset/{stage_id}-{stage}/y.csv').drop(columns=['id'], errors='ignore')
+        df_x = (__load_df(f'../dataset/{stage_id}-{stage}/X.csv', use_cache=use_cache)
+                .drop(columns=['id'], errors='ignore'))
+        df_y = (__load_df(f'../dataset/{stage_id}-{stage}/y.csv', use_cache=use_cache)
+                .drop(columns=['id'], errors='ignore'))
 
     if stage == 'classification':
-        df_x['trq_margin'] = __load_cached_df(
-            f'../2-torque_target_probabilistic_regression/predictions_{"test" if testset else "train"}.csv')[
-            'trq_margin']
+        df_x['trq_margin'] = __load_df(
+            f'../2-torque_target_probabilistic_regression/predictions_{"test" if testset else "train"}.csv',
+            use_cache=use_cache)['trq_margin']
     elif not testset:
         df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
 
