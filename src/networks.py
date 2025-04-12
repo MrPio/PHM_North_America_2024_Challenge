@@ -191,7 +191,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         return metrics
 
     def multi_train(self, X: pd.DataFrame, y: pd.Series, epochs, prefix: str = None, train_ratio=0.25, times=10,
-                    batch_size=8192) -> pd.DataFrame:
+                    batch_size=8192, lr=0.05) -> pd.DataFrame:
         """Train the model multiple times with different data set random splits"""
         results = pd.DataFrame(
             columns=['test_loss'] if self.task == 'regression' else ['avg_test_score', 'accuracy', 'precision',
@@ -206,7 +206,7 @@ class PHMNetwork(nn.Module, abc.ABC):
                                                                         device=self.device)
             normalizations_df.loc[i] = normalizations
             self.reset()
-            self.fit(trainset, validset, optim.Adam(self.parameters(), lr=0.05), epochs, prefix=prefix,
+            self.fit(trainset, validset, optim.Adam(self.parameters(), lr=lr), epochs, prefix=prefix,
                      batch_size=batch_size)
             metrics = self.test(testset)
             results.loc[i] = metrics

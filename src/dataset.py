@@ -12,6 +12,11 @@ Contains functions to read, split and standardize the dataset.
 
 __author__ = 'Valerio Morelli (@MrPio)'
 __cached_df = {}
+__dataset_suffix = {
+    'train': '_train',
+    'valid': '_valid',
+    'test': '_test'
+}
 
 
 def __load_df(path: str, use_cache=True) -> pd.DataFrame:
@@ -28,54 +33,45 @@ def __load_df(path: str, use_cache=True) -> pd.DataFrame:
 
 
 def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'classification'],
-                 normalization: Literal['normalize', 'standardize'] = None, testset=False, merge=False,
+                 normalization: Literal['normalize', 'standardize'] = None,
+                 dataset: Literal['train', 'valid', 'test'] = 'train', merge=False,
                  use_cache=True) -> tuple[pd.DataFrame, pd.DataFrame] | pd.DataFrame:
     """
     Read the original dataset and calculate the trq_target ground truth.
     :param stage: The kind of dataset to read. Can be 'original', 'preprocessed', 'regression' or 'classification'.
     :param normalization: If 'normalize' or 'standardize' is provided, the features will be normalized or standardized.
-    :param testset: Whether to consider the unlabelled test set or the labelled trainset.
+    :param dataset: What set to consider.
     :param merge: If True, the features and the ground truths will be merged into one dataframe.
     :param use_cache: Whether to fetch the dataset from cache when possible.
     :return: One dataframe for features and one for regression and fault detection ground truths
     """
     stage_id = ['original', 'preprocessed', 'regression', 'classification'].index(stage)
-    if testset:
-        if stage == 'original':
-            df_valid = (__load_df(f'../dataset/0-original/X_validation.csv', use_cache=use_cache)
-                        .drop(columns=['id'], errors='ignore'))
-            df_test = (__load_df(f'../dataset/0-original/X_test.csv', use_cache=use_cache)
-                       .drop(columns=['id'], errors='ignore'))
-            df_x = pd.concat([df_valid, df_test], axis='rows', ignore_index=True)
-        else:
-            df_x = (__load_df(f'../dataset/{stage_id}-{stage}/X_test.csv', use_cache=use_cache)
-                    .drop(columns=['id'], errors='ignore'))
-    else:
-        df_x = (__load_df(f'../dataset/{stage_id}-{stage}/X.csv', use_cache=use_cache)
-                .drop(columns=['id'], errors='ignore'))
+    df_x = (__load_df(f'../dataset/{stage_id}-{stage}/X{__dataset_suffix[dataset]}.csv', use_cache=use_cache)
+            .drop(columns=['id'], errors='ignore'))
+    if dataset == 'train':
         df_y = (__load_df(f'../dataset/{stage_id}-{stage}/y.csv', use_cache=use_cache)
                 .drop(columns=['id'], errors='ignore'))
+        if not stage == 'classification':
+            df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
 
     if stage == 'classification':
         df_x['trq_margin'] = __load_df(
-            f'../2-torque_target_probabilistic_regression/predictions_{"test" if testset else "train"}.csv',
+            f'../2-torque_target_probabilistic_regression/predictions{__dataset_suffix[dataset]}.csv',
             use_cache=use_cache)['trq_margin']
-    elif not testset:
-        df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
 
     if normalization == 'normalize':
         df_x = (df_x - df_x.min()) / (df_x.max() - df_x.min() + 1e-10)
-        if not testset:
+        if dataset == 'train':
             cols = df_y.columns.difference(["faulty"])
             df_y[cols] = (df_y[cols] - df_y[cols].min()) / (df_y[cols].max() - df_y[cols].min() + 1e-10)
     elif normalization == 'standardize':
         df_x = (df_x - df_x.mean()) / df_x.std()
-        if not testset:
+        if dataset == 'train':
             cols = df_y.columns.difference(["faulty"])
             df_y[cols] = (df_y[cols] - df_y[cols].mean()) / df_y[cols].std()
-    if merge and not testset:
+    if merge and dataset == 'train':
         return pd.concat([df_x, df_y], axis='columns')
-    elif testset:
+    elif dataset != 'train':
         return df_x
     else:
         return df_x, df_y
