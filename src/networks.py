@@ -70,16 +70,42 @@ class PHMNetwork(nn.Module, abc.ABC):
             "cuda" if torch.cuda.is_available() else "cpu") if device is None else device
 
         if self.task == 'regression':
-            def normalizedFNLLL(input, target, var):
+            def normalizedGNLL(input, target, var):
                 var = var.clamp(min=1e-6)
                 y_max = 1 / torch.sqrt(2 * torch.pi * var)
                 norm_factor = torch.where(y_max > 1, y_max, torch.ones_like(y_max))
-                loss = 0.5 * torch.log(2 * torch.pi * var) + (input - target) ** 2 / (2 * var) + torch.log(norm_factor)
+                # loss = 0.5 * torch.log(2 * torch.pi * var) + (input - target) ** 2 / (2 * var) + torch.log(norm_factor)
+                loss = -1 / torch.sqrt(2 * torch.pi * var) * torch.exp(-(input - target) ** 2 / (2 * var)) / norm_factor
                 return loss.mean()
 
-            self.criterion = normalizedFNLLL
+            self.criterion = normalizedGNLL
         else:
-            self.criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([2]).to(self.device))
+            def classNegScore(confidence: torch.Tensor, true_labels: torch.Tensor):
+                pred_labels: torch.Tensor = torch.where(confidence > 0.5, 1, 0)
+                confidence = torch.sigmoid(confidence)
+
+                valid_confidence_mask = (confidence >= 0) & (confidence <= 1)
+                valid_label_mask = (pred_labels == 0) | (pred_labels == 1)
+                valid_mask = valid_confidence_mask & valid_label_mask
+
+                adjusted_confidence = torch.where(pred_labels == 0, 1 - confidence * 2, (confidence - 0.5) * 2)
+                adjusted_confidence = torch.where(pred_labels == true_labels, adjusted_confidence, -adjusted_confidence)
+
+                healthy_scores = adjusted_confidence.clone()
+                faulty_scores = torch.where(
+                    adjusted_confidence >= 0,
+                    adjusted_confidence,
+                    4 * adjusted_confidence ** 11 + adjusted_confidence
+                )
+                scores = torch.where(
+                    true_labels == 0,
+                    healthy_scores,
+                    faulty_scores
+                )
+                return -torch.where(valid_mask, scores, -100.0).mean()
+
+            # self.criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([2]).to(self.device))
+            self.criterion = classNegScore
 
     def forward(self, x):
         x = self.model(x)
@@ -201,7 +227,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         return metrics
 
     def multi_train(self, X: pd.DataFrame, y: pd.Series, epochs, prefix: str = None, train_ratio=0.25, times=10,
-                    batch_size=8192, lr=0.05) -> pd.DataFrame:
+                    batch_size=2048, lr=0.05) -> pd.DataFrame:
         """Train the model multiple times with different data set random splits"""
         results = pd.DataFrame(
             columns=['test_loss'] if self.task == 'regression' else ['avg_test_score', 'accuracy', 'precision',
@@ -212,7 +238,8 @@ class PHMNetwork(nn.Module, abc.ABC):
         for i in range(times):
             print(f'Time {i + 1}/{times}===========================')
             trainset, validset, testset, normalizations = split_dataset(X, y, train_ratio,
-                                                                        standardize_y=False,#self.task != 'classification',
+                                                                        standardize_y=False,
+                                                                        # self.task != 'classification',
                                                                         device=self.device)
             normalizations_df.loc[i] = normalizations
             self.reset()
