@@ -1,21 +1,27 @@
 # PHM North America 2024 Challenge
+<a href="https://data.phmsociety.org/phm-2024-data-challenge-submission-area/"><img src="https://img.shields.io/badge/PHM-Scoreboard-blue?style=for-the-badge" /></a>
+  
 Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm2024-conference-data-challenge/) with [Kolmogorov-Arnold Networks](https://github.com/KindXiaoming/pykan).
 
+#### 📘 Thesis - *Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks* [`.PDF`](slideshows/Addressing-PHM-North-America-2024-Challenge-With-Kolmogorov-Arnold-Networks.pdf) 
+#### 📙 Review 1 - *Preliminary SOTA study* [`.PPTX`](https://github.com/user-attachments/files/19043133/Gruppo.A1.prima.revisione.pptx) [`.PDF`](slideshows/1-Preliminary_SOTA_study.pdf) 
+#### 📙 Review 2 - *EDA and experiments with KANs* [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](slideshows/2-EDA-And-Experiments-With-KANs.pdf) 
+#### 📙 Review 3 - *Putting it all together* [`.PPTX`](https://github.com/user-attachments/files/19250163/Gruppo.A1.terza.revisione.pptx) [`.PDF`](slideshows/3-Putting-It-All-Together.pdf) 
 
-## 📘 Thesis
+## 📦 TL;DR
+The goal of this project is to introduce Kolmogorov-Arnold Networks in the field of fault detection. There are two main advantages:
+- *Interpretability*: as shown in the figures below, **KAN is far more interpretable than the MLP**. This comes at the cost of smaller accuracy.
+- *Continual learning*: as proved in a [previous study of mine](https://github.com/MrPio/KAN-Continual_Learning_tests), **KANs suffer less from catastrophic forgetting than MLPs**.
 
-### ➡️ *Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks* [`.PDF`](slideshows/Addressing-PHM-North-America-2024-Challenge-With-Kolmogorov-Arnold-Networks.pdf) 
+### KAN
+<p align="center"><img height="275rem" align="center" src="https://github.com/user-attachments/assets/976846cd-c8ea-4fb1-a0da-67574bfb8b88"/></p>
 
-## 📙 Slideshows of the reviews
-
-<img height="150rem" align="right" src="https://github.com/user-attachments/assets/9d513014-9f84-4387-b68e-7c7941bad89d"/>
-
-### 1️⃣ *Preliminary SOTA study* [`.PPTX`](https://github.com/user-attachments/files/19043133/Gruppo.A1.prima.revisione.pptx) [`.PDF`](slideshows/1-Preliminary_SOTA_study.pdf) 
-### 2️⃣ *EDA and experiments with KANs* [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](slideshows/2-EDA-And-Experiments-With-KANs.pdf) 
-### 3️⃣ *Putting it all together* [`.PPTX`](https://github.com/user-attachments/files/19250163/Gruppo.A1.terza.revisione.pptx) [`.PDF`](slideshows/3-Putting-It-All-Together.pdf) 
-
+### MLP
+<p align="center"><img height="325rem" align="center" src="https://github.com/user-attachments/assets/1195ec61-f18a-4f9b-8018-719875e902e7"/></p>
 
 ## ⚙️ How to run
+
+<img height="150rem" align="right" src="https://github.com/user-attachments/assets/9d513014-9f84-4387-b68e-7c7941bad89d"/>
 
 ### Prerequisites
 
