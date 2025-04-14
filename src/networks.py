@@ -68,8 +68,18 @@ class PHMNetwork(nn.Module, abc.ABC):
         self.model: nn.Module
         self.device: torch.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu") if device is None else device
-        self.criterion = nn.GaussianNLLLoss(reduction='mean') if self.task == 'regression' else nn.BCEWithLogitsLoss(
-            pos_weight=torch.tensor([2]).to(self.device))
+
+        if self.task == 'regression':
+            def normalizedFNLLL(input, target, var):
+                var = var.clamp(min=1e-6)
+                y_max = 1 / torch.sqrt(2 * torch.pi * var)
+                norm_factor = torch.where(y_max > 1, y_max, torch.ones_like(y_max))
+                loss = 0.5 * torch.log(2 * torch.pi * var) + (input - target) ** 2 / (2 * var) + torch.log(norm_factor)
+                return loss.mean()
+
+            self.criterion = normalizedFNLLL
+        else:
+            self.criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([2]).to(self.device))
 
     def forward(self, x):
         x = self.model(x)
@@ -202,7 +212,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         for i in range(times):
             print(f'Time {i + 1}/{times}===========================')
             trainset, validset, testset, normalizations = split_dataset(X, y, train_ratio,
-                                                                        standardize_y=self.task != 'classification',
+                                                                        standardize_y=False,#self.task != 'classification',
                                                                         device=self.device)
             normalizations_df.loc[i] = normalizations
             self.reset()
