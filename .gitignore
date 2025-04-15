@@ -1,7 +1,9 @@
 dataset/**/*.csv
-.idea/
-figures/
-model/
+**/figures/
+**/model/
 **/.ipynb_checkpoints
+5-result_exporter/train.json
+
+.idea/
 **/__pycache__/
 **/.pyc

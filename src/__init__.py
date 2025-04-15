@@ -15,4 +15,6 @@ def to_latex(feature: str):
                .replace("_measured", "^{msr}")
                .replace("_target", "^{trg}")
                .replace("_margin", "^{mrg}"))
+    if feature.count('^') > 1:
+        feature = feature.replace('^', '_', 1)
     return f"${feature}$"

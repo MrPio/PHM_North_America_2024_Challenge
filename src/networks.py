@@ -238,7 +238,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         for i in range(times):
             print(f'Time {i + 1}/{times}===========================')
             trainset, validset, testset, normalizations = split_dataset(X, y, train_ratio,
-                                                                        standardize_y=False,
+                                                                        standardize_y=False, # because the loss score would not be faithful to the challenge score otherwise.
                                                                         # self.task != 'classification',
                                                                         device=self.device)
             normalizations_df.loc[i] = normalizations
