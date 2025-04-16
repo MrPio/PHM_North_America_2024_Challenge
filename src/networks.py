@@ -3,6 +3,7 @@ import math
 from datetime import datetime
 from math import ceil
 from random import random
+from typing import Callable
 from typing import Literal
 
 import networkx as nx
@@ -132,7 +133,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         pass
 
     def fit(self, trainset: tuple[Tensor, Tensor], validset: tuple[Tensor, Tensor], optimizer: Optimizer,
-            epochs: int, prefix: str = None, batch_size=8192):
+            epochs: int, prefix: str = None, batch_size=8192, callback: Callable = None) -> tuple[list[int], list[int]]:
         """Train the model on a given train set.
 
         After each epoch, validates it.
@@ -178,6 +179,8 @@ class PHMNetwork(nn.Module, abc.ABC):
             train_losses.append(np.mean(epoch_train_losses))
             validation_losses.append(np.mean(epoch_validation_losses))
 
+            if callback: callback()
+
         # Plot losses
         plt.figure(figsize=(24, 8))
         plt.plot(train_losses, label='Training loss')
@@ -188,6 +191,7 @@ class PHMNetwork(nn.Module, abc.ABC):
             plt.close()
         else:
             plt.show()
+        return train_losses, validation_losses
 
     def test(self, testset: tuple[Tensor, Tensor], batch_size=8192) -> dict:
         """Test the model on a given test set.
@@ -227,22 +231,23 @@ class PHMNetwork(nn.Module, abc.ABC):
         return metrics
 
     def multi_train(self, X: pd.DataFrame, y: pd.Series, epochs, prefix: str = None, train_ratio=0.25, times=10,
-                    batch_size=2048, lr=0.05) -> pd.DataFrame:
+                    batch_size=2048, lr=0.05, reset_each_time=True) -> pd.DataFrame:
         """Train the model multiple times with different data set random splits"""
         results = pd.DataFrame(
             columns=['test_loss'] if self.task == 'regression' else ['avg_test_score', 'accuracy', 'precision',
                                                                      'recall', 'f1'])
         normalizations_df = pd.DataFrame(
             columns=[f'{col}_mean' for col in X.columns] + [f'{col}_std' for col in X.columns] + ['y_mean', 'y_std'])
-        start_date = datetime.now()
         for i in range(times):
             print(f'Time {i + 1}/{times}===========================')
             trainset, validset, testset, normalizations = split_dataset(X, y, train_ratio,
-                                                                        standardize_y=False, # because the loss score would not be faithful to the challenge score otherwise.
+                                                                        standardize_y=False,
+                                                                        # because the loss score would not be faithful to the challenge score otherwise.
                                                                         # self.task != 'classification',
                                                                         device=self.device)
             normalizations_df.loc[i] = normalizations
-            self.reset()
+            if reset_each_time:
+                self.reset()
             self.fit(trainset, validset, optim.Adam(self.parameters(), lr=lr), epochs, prefix=prefix,
                      batch_size=batch_size)
             metrics = self.test(testset)

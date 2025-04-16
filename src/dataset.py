@@ -17,6 +17,10 @@ __dataset_suffix = {
     'valid': '_valid',
     'test': '_test'
 }
+__discarded_suffix = {
+    False: '',
+    True: '_discarded',
+}
 
 
 def __load_df(path: str, use_cache=True) -> pd.DataFrame:
@@ -34,7 +38,7 @@ def __load_df(path: str, use_cache=True) -> pd.DataFrame:
 
 def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'classification'],
                  normalization: Literal['normalize', 'standardize'] = None,
-                 dataset: Literal['train', 'valid', 'test'] = 'train', merge=False,
+                 dataset: Literal['train', 'valid', 'test'] = 'train', merge=False, discarded=False,
                  use_cache=True) -> tuple[pd.DataFrame, pd.DataFrame] | pd.DataFrame:
     """
     Read the original dataset and calculate the trq_target ground truth.
@@ -42,21 +46,22 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
     :param normalization: If 'normalize' or 'standardize' is provided, the features will be normalized or standardized.
     :param dataset: What set to consider.
     :param merge: If True, the features and the ground truths will be merged into one dataframe.
+    :param discarded: If True, loads the discarded csv.
     :param use_cache: Whether to fetch the dataset from cache when possible.
     :return: One dataframe for features and one for regression and fault detection ground truths
     """
     stage_id = ['original', 'preprocessed', 'regression', 'classification'].index(stage)
-    df_x = (__load_df(f'../dataset/{stage_id}-{stage}/X{__dataset_suffix[dataset]}.csv', use_cache=use_cache)
-            .drop(columns=['id'], errors='ignore'))
+    df_x = (__load_df(f'../dataset/{stage_id}-{stage}/X{__dataset_suffix[dataset]}{__discarded_suffix[discarded]}.csv',
+                      use_cache=use_cache).drop(columns=['id'], errors='ignore'))
     if dataset == 'train':
-        df_y = (__load_df(f'../dataset/{stage_id}-{stage}/y.csv', use_cache=use_cache)
+        df_y = (__load_df(f'../dataset/{stage_id}-{stage}/y{__discarded_suffix[discarded]}.csv', use_cache=use_cache)
                 .drop(columns=['id'], errors='ignore'))
         if not stage == 'classification':
             df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
 
     if stage == 'classification':
         df_x['trq_margin'] = __load_df(
-            f'../2-torque_target_probabilistic_regression/predictions{__dataset_suffix[dataset]}.csv',
+            f'../2-torque_target_probabilistic_regression/predictions{__dataset_suffix[dataset]}{__discarded_suffix[discarded]}.csv',
             use_cache=use_cache)['trq_margin']
 
     if normalization == 'normalize':
@@ -77,7 +82,7 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
         return df_x, df_y
 
 
-def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, standardize_y=True, max=1, seed=None,
+def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, standardize_y=True, max=1, seed=None, group_by=None,
                   device='cpu') -> tuple[
     tuple[Tensor, Tensor], tuple[Tensor, Tensor], tuple[Tensor, Tensor], dict[str, float]]:
     """Split the dataset into train, valid, and test sets.
@@ -89,10 +94,15 @@ def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, standardize_y
     :param standardize_y: The classification task does not require standardization of the ground truths.
     :param max: How much of the dataset to use.
     :param seed: The seed to use for random sampling.
+    :param group_by: The column that identify the domains in which the train and valid sets will be grouped.
     :param device: The device to use for the tensors.
     :return: train set (X, y), valid set (X, y), test set (X, y), and a dict of train means and std used to standardize the sets.
     """
 
+    if group_by is not None:
+        group_col = X[group_by]
+        groups = group_col.unique()
+        X = X.drop(group_by, axis=1)
     dataset_x = tensor(X.values, dtype=torch.float32, device=device)
     dataset_y = tensor(y, dtype=torch.float32, device=device).unsqueeze(1)
     test_ratio = (max - train_ratio) / 2.0
@@ -133,4 +143,24 @@ def split_dataset(X: pd.DataFrame, y: pd.Series, train_ratio=0.25, standardize_y
     if standardize_y:
         test_y = (test_y - train_y_mean) / train_y_std
 
-    return (train_x, train_y), (valid_x, valid_y), (test_x, test_y), normalizations
+    if group_by is None:
+        trainset = (train_x, train_y)
+        validset = (valid_x, valid_y)
+    else:
+        group_col = group_col.iloc[random_indices].reset_index(drop=True)
+        trainset = {
+            group: (
+                train_x[tensor((group_col == group)[:len(train_x)].values)],
+                train_y[tensor((group_col == group)[:len(train_x)].values)]
+            )
+            for group in groups
+        }
+        validset = {
+            group: (
+                valid_x[tensor((group_col == group)[len(train_x):len(train_x) + len(valid_x)].values)],
+                valid_y[tensor((group_col == group)[len(train_x):len(train_x) + len(valid_x)].values)]
+            )
+            for group in groups
+        }
+
+    return trainset, validset, (test_x, test_y), normalizations
