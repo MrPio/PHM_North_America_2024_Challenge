@@ -62,7 +62,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         return torch.where(valid_mask, scores, -100.0)
 
     def __init__(self, layers: list[int] | list[list[int]], task: Literal['regression', 'classification'],
-                 device='cpu'):
+                 use_native_loss=False, device='cpu'):
         super().__init__()
         self.layers = layers
         self.task: Literal['regression', 'classification'] = task
@@ -79,7 +79,7 @@ class PHMNetwork(nn.Module, abc.ABC):
                 loss = -1 / torch.sqrt(2 * torch.pi * var) * torch.exp(-(input - target) ** 2 / (2 * var)) / norm_factor
                 return loss.mean()
 
-            self.criterion = normalizedGNLL
+            self.criterion = nn.GaussianNLLLoss().to(self.device) if use_native_loss else normalizedGNLL
         else:
             def classNegScore(confidence: torch.Tensor, true_labels: torch.Tensor):
                 pred_labels: torch.Tensor = torch.where(confidence > 0.5, 1, 0)
@@ -105,8 +105,8 @@ class PHMNetwork(nn.Module, abc.ABC):
                 )
                 return -torch.where(valid_mask, scores, -100.0).mean()
 
-            # self.criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([2]).to(self.device))
-            self.criterion = classNegScore
+            self.criterion = nn.BCEWithLogitsLoss(
+                pos_weight=torch.tensor([2]).to(self.device)) if use_native_loss else classNegScore
 
     def forward(self, x):
         x = self.model(x)
@@ -133,7 +133,8 @@ class PHMNetwork(nn.Module, abc.ABC):
         pass
 
     def fit(self, trainset: tuple[Tensor, Tensor], validset: tuple[Tensor, Tensor], optimizer: Optimizer,
-            epochs: int, prefix: str = None, batch_size=8192, callback: Callable = None) -> tuple[list[int], list[int]]:
+            epochs: int, prefix: str = None, batch_size=4096, callback: Callable = None, silent=False) -> tuple[
+        list[int], list[int]]:
         """Train the model on a given train set.
 
         After each epoch, validates it.
@@ -162,7 +163,7 @@ class PHMNetwork(nn.Module, abc.ABC):
 
             # Training
             self.model.train()
-            with tqdm(range(ceil(train_x.size(0) / batch_size))) as pbar:
+            with tqdm(range(ceil(train_x.size(0) / batch_size)), disable=silent) as pbar:
                 for i in pbar:
                     loss = get_loss(i, train_x, train_y)
                     epoch_train_losses.append(loss.item())
@@ -193,7 +194,7 @@ class PHMNetwork(nn.Module, abc.ABC):
             plt.show()
         return train_losses, validation_losses
 
-    def test(self, testset: tuple[Tensor, Tensor], batch_size=8192) -> dict:
+    def test(self, testset: tuple[Tensor, Tensor], batch_size=4096, silent=False) -> dict:
         """Test the model on a given test set.
 
         Returns a dict of metrics.
@@ -204,7 +205,7 @@ class PHMNetwork(nn.Module, abc.ABC):
         score_len = 0
         test_losses = []
         y_pred = torch.tensor([])
-        for i in tqdm(range(ceil(test_x.size(0) / batch_size))):
+        for i in tqdm(range(ceil(test_x.size(0) / batch_size)), disable=silent):
             x = test_x[i * batch_size:min(test_x.size(0), (i + 1) * batch_size)]
             y = test_y[i * batch_size:min(test_y.size(0), (i + 1) * batch_size)]
             if self.task == 'regression':
@@ -279,14 +280,21 @@ class PHMNetwork(nn.Module, abc.ABC):
 
 
 class PyKAN(PHMNetwork):
-    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, device='cpu'):
-        super(PyKAN, self).__init__(layers, task, device)
+    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, use_native_loss=False,
+                 continual_learning=False,
+                 device='cpu'):
+        super(PyKAN, self).__init__(layers, task, use_native_loss, device)
         self.grid_size = grid_size
         self.model = None
+        self.continual_learning = continual_learning
         self.reset()
 
     def reset(self):
-        self.model = Py_KAN(width=self.layers, grid=self.grid_size, k=3, device=self.device)
+        self.model = Py_KAN(width=self.layers, grid=self.grid_size, k=3,
+                            noise_scale=0.1 if self.continual_learning else 0.3,
+                            base_fun='zero' if self.continual_learning else 'silu',
+                            sp_trainable=not self.continual_learning,
+                            sb_trainable=not self.continual_learning, device=self.device)
 
     def plot(self, scale=1, in_vars=None):
         self.model.plot(scale=scale, in_vars=in_vars,
@@ -295,14 +303,20 @@ class PyKAN(PHMNetwork):
 
 
 class EfficientKAN(PHMNetwork):
-    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, device='cpu'):
-        super(EfficientKAN, self).__init__(layers, task, device)
+    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, use_native_loss=False,
+                 continual_learning=False, device='cpu'):
+        super(EfficientKAN, self).__init__(layers, task, use_native_loss, device)
         self.grid_size = grid_size
         self.model = None
+        self.continual_learning = continual_learning
         self.reset()
 
     def reset(self):
-        self.model = EffKAN(self.layers, grid_size=self.grid_size, spline_order=3).to(self.device)
+        self.model = EffKAN(self.layers, grid_size=self.grid_size, spline_order=3,
+                            grid_eps=1 if self.continual_learning else 0.02,
+                            scale_base=0 if self.continual_learning else 1,
+                            sp_trainable=not self.continual_learning,
+                            sb_trainable=not self.continual_learning).to(self.device)
 
     def plot(self, scale=1, in_vars=None):
         """This is an implementation of mine.
@@ -358,8 +372,8 @@ class EfficientKAN(PHMNetwork):
 
 
 class MLP(PHMNetwork):
-    def __init__(self, layers, task: Literal['regression', 'classification'], device='cpu'):
-        super(MLP, self).__init__(layers, task, device)
+    def __init__(self, layers, task: Literal['regression', 'classification'], use_native_loss=False, device='cpu'):
+        super(MLP, self).__init__(layers, task, use_native_loss, device)
         self.model = None
         self.reset()
 

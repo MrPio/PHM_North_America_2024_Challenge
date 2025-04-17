@@ -38,7 +38,7 @@ def __load_df(path: str, use_cache=True) -> pd.DataFrame:
 
 def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'classification'],
                  normalization: Literal['normalize', 'standardize'] = None,
-                 dataset: Literal['train', 'valid', 'test'] = 'train', merge=False, discarded=False,
+                 dataset: Literal['train', 'valid', 'test'] = 'train', merge=False, discarded=False, cheat=False,
                  use_cache=True) -> tuple[pd.DataFrame, pd.DataFrame] | pd.DataFrame:
     """
     Read the original dataset and calculate the trq_target ground truth.
@@ -47,6 +47,7 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
     :param dataset: What set to consider.
     :param merge: If True, the features and the ground truths will be merged into one dataframe.
     :param discarded: If True, loads the discarded csv.
+    :param cheat: Whether, in classification, to fetch the ground truth instead of the regression predictions. Can only cheat for training set.
     :param use_cache: Whether to fetch the dataset from cache when possible.
     :return: One dataframe for features and one for regression and fault detection ground truths
     """
@@ -60,9 +61,9 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
             df_y['trq_target'] = df_x['trq_measured'] / (df_y['trq_margin'] / 100 + 1)
 
     if stage == 'classification':
-        df_x['trq_margin'] = __load_df(
-            f'../2-torque_target_probabilistic_regression/predictions{__dataset_suffix[dataset]}{__discarded_suffix[discarded]}.csv',
-            use_cache=use_cache)['trq_margin']
+        base_dir = '../dataset/2-regression/y' if cheat and dataset == 'train' else f'../2-torque_target_probabilistic_regression/predictions{__dataset_suffix[dataset]}'
+        df_x['trq_margin'] = __load_df(f'{base_dir}{__discarded_suffix[discarded]}.csv',
+                                       use_cache=use_cache)['trq_margin']
 
     if normalization == 'normalize':
         df_x = (df_x - df_x.min()) / (df_x.max() - df_x.min() + 1e-10)
@@ -74,6 +75,7 @@ def read_dataset(stage: Literal['original', 'preprocessed', 'regression', 'class
         if dataset == 'train':
             cols = df_y.columns.difference(["faulty"])
             df_y[cols] = (df_y[cols] - df_y[cols].mean()) / df_y[cols].std()
+
     if merge and dataset == 'train':
         return pd.concat([df_x, df_y], axis='columns')
     elif dataset != 'train':
