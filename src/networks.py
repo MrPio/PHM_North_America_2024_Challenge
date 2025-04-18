@@ -183,15 +183,13 @@ class PHMNetwork(nn.Module, abc.ABC):
             if callback: callback()
 
         # Plot losses
-        plt.figure(figsize=(24, 8))
-        plt.plot(train_losses, label='Training loss')
-        plt.plot(validation_losses, label='Validation loss')
-        plt.legend()
         if prefix is not None:
+            plt.figure(figsize=(24, 8))
+            plt.plot(train_losses, label='Training loss')
+            plt.plot(validation_losses, label='Validation loss')
+            plt.legend()
             plt.savefig(f'img/{prefix}_{datetime.now().ctime().replace(":", "-")}.png')
             plt.close()
-        else:
-            plt.show()
         return train_losses, validation_losses
 
     def test(self, testset: tuple[Tensor, Tensor], batch_size=4096, silent=False) -> dict:
