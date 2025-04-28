@@ -294,10 +294,11 @@ class PyKAN(PHMNetwork):
                             sp_trainable=not self.continual_learning,
                             sb_trainable=not self.continual_learning, device=self.device)
 
-    def plot(self, scale=1, in_vars=None):
+    def plot(self, scale=1, in_vars=None, varscale=4, figsize_base=(14, 10), rotate_in_vars=False):
         self.model.plot(scale=scale, in_vars=in_vars,
-                        out_vars=['$\\mu$', '$\\sigma$'] if self.task == 'regression' else ['$P(faulty)$'],
-                        varscale=0.45 * 8 / self.layers[0][0], figsize_base=(14, 10))
+                        out_vars=['$\\mu$', '$log(\\sigma)$'] if self.task == 'regression' else ['$P(faulty)$'],
+                        varscale=varscale / self.layers[0][0], figsize_base=figsize_base,
+                        in_vars_rotation=90 if rotate_in_vars else 0)
 
 
 class EfficientKAN(PHMNetwork):
@@ -383,7 +384,7 @@ class MLP(PHMNetwork):
                 layers.append(nn.Sigmoid())
         self.model = nn.Sequential(*layers).to(self.device)
 
-    def plot(self, scale=1, in_vars=None):
+    def plot(self, scale=1, in_vars=None, node_size=300, font_size=11, edge_width=5):
         layers = [self.model[0].in_features]
         linears = list(filter(lambda l: type(l) == torch.nn.modules.linear.Linear, self.model))
         for l in linears:
@@ -413,6 +414,6 @@ class MLP(PHMNetwork):
         plt.grid()
         plt.title('Weights distribution')
         plt.figure(3, figsize=(scale * 16, scale * 12))
-        nx.draw(G, pos, with_labels=True, node_size=300, node_color="skyblue", edge_cmap=plt.colormaps['PiYG'],
-                edge_color=weights, edge_vmin=-0.5, edge_vmax=0.5, font_size=10, width=5)
+        nx.draw(G, pos, with_labels=True, node_size=node_size, node_color="skyblue", edge_cmap=plt.colormaps['PiYG'],
+                edge_color=weights, edge_vmin=-0.5, edge_vmax=0.5, font_size=font_size, width=edge_width)
         plt.show()

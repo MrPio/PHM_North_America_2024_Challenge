@@ -11,4 +11,4 @@ tqdm~=4.67.1
 networkx~=3.2.1
 ptflops~=0.7.3
 ipywidgets~=8.1.2
-ipython~=8.24.0
+statsmodels~=0.14.4
