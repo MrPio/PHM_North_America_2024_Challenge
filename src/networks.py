@@ -312,8 +312,8 @@ class EfficientKAN(PHMNetwork):
 
     def reset(self):
         self.model = EffKAN(self.layers, grid_size=self.grid_size, spline_order=3,
-                            grid_eps=1 if self.continual_learning else 0.02,
-                            scale_base=0 if self.continual_learning else 1,
+                            # grid_eps=0.75 if self.continual_learning else 0.02,
+                            # scale_base=0 if self.continual_learning else 1,
                             sp_trainable=not self.continual_learning,
                             sb_trainable=not self.continual_learning).to(self.device)
 
