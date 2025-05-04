@@ -45,8 +45,10 @@ class PHMNetwork(nn.Module, abc.ABC):
         valid_label_mask = (pred_labels == 0) | (pred_labels == 1)
         valid_mask = valid_confidence_mask & valid_label_mask
 
-        adjusted_confidence = torch.where(pred_labels == 0, 1 - confidence * 2, (confidence - 0.5) * 2)
-        adjusted_confidence = torch.where(pred_labels == true_labels, adjusted_confidence, -adjusted_confidence)
+        adjusted_confidence = torch.where(
+            pred_labels == 0, 1 - confidence * 2, (confidence - 0.5) * 2)
+        adjusted_confidence = torch.where(
+            pred_labels == true_labels, adjusted_confidence, -adjusted_confidence)
 
         healthy_scores = adjusted_confidence.clone()
         faulty_scores = torch.where(
@@ -74,12 +76,15 @@ class PHMNetwork(nn.Module, abc.ABC):
             def normalizedGNLL(input, target, var):
                 var = var.clamp(min=1e-6)
                 y_max = 1 / torch.sqrt(2 * torch.pi * var)
-                norm_factor = torch.where(y_max > 1, y_max, torch.ones_like(y_max))
+                norm_factor = torch.where(
+                    y_max > 1, y_max, torch.ones_like(y_max))
                 # loss = 0.5 * torch.log(2 * torch.pi * var) + (input - target) ** 2 / (2 * var) + torch.log(norm_factor)
-                loss = -1 / torch.sqrt(2 * torch.pi * var) * torch.exp(-(input - target) ** 2 / (2 * var)) / norm_factor
+                loss = -1 / torch.sqrt(2 * torch.pi * var) * \
+                    torch.exp(-(input - target) ** 2 / (2 * var)) / norm_factor
                 return loss.mean()
 
-            self.criterion = nn.GaussianNLLLoss().to(self.device) if use_native_loss else normalizedGNLL
+            self.criterion = nn.GaussianNLLLoss().to(
+                self.device) if use_native_loss else normalizedGNLL
         else:
             def classNegScore(confidence: torch.Tensor, true_labels: torch.Tensor):
                 pred_labels: torch.Tensor = torch.where(confidence > 0.5, 1, 0)
@@ -89,8 +94,10 @@ class PHMNetwork(nn.Module, abc.ABC):
                 valid_label_mask = (pred_labels == 0) | (pred_labels == 1)
                 valid_mask = valid_confidence_mask & valid_label_mask
 
-                adjusted_confidence = torch.where(pred_labels == 0, 1 - confidence * 2, (confidence - 0.5) * 2)
-                adjusted_confidence = torch.where(pred_labels == true_labels, adjusted_confidence, -adjusted_confidence)
+                adjusted_confidence = torch.where(
+                    pred_labels == 0, 1 - confidence * 2, (confidence - 0.5) * 2)
+                adjusted_confidence = torch.where(
+                    pred_labels == true_labels, adjusted_confidence, -adjusted_confidence)
 
                 healthy_scores = adjusted_confidence.clone()
                 faulty_scores = torch.where(
@@ -118,7 +125,8 @@ class PHMNetwork(nn.Module, abc.ABC):
             return x
 
     def save(self, name: str):
-        torch.save(self.model.state_dict(), f'models/{name}_{self.__class__.__name__}_layers-{str(self.layers)}')
+        torch.save(self.model.state_dict(
+        ), f'models/{name}_{self.__class__.__name__}_layers-{str(self.layers)}')
 
     def load(self, name: str):
         self.model.load_state_dict(
@@ -134,7 +142,7 @@ class PHMNetwork(nn.Module, abc.ABC):
 
     def fit(self, trainset: tuple[Tensor, Tensor], validset: tuple[Tensor, Tensor], optimizer: Optimizer,
             epochs: int, prefix: str = None, batch_size=4096, callback: Callable = None, silent=False) -> tuple[
-        list[int], list[int]]:
+            list[int], list[int]]:
         """Train the model on a given train set.
 
         After each epoch, validates it.
@@ -143,8 +151,10 @@ class PHMNetwork(nn.Module, abc.ABC):
         valid_x, valid_y = validset
 
         def get_loss(batch, X_set, y_set):
-            x = X_set[batch * batch_size:min(X_set.size(0), (batch + 1) * batch_size)]
-            y = y_set[batch * batch_size:min(y_set.size(0), (batch + 1) * batch_size)]
+            x = X_set[batch *
+                      batch_size:min(X_set.size(0), (batch + 1) * batch_size)]
+            y = y_set[batch *
+                      batch_size:min(y_set.size(0), (batch + 1) * batch_size)]
             optimizer.zero_grad()
             if self.task == 'regression':
                 mu, log_var = self(x)
@@ -168,7 +178,8 @@ class PHMNetwork(nn.Module, abc.ABC):
                     loss = get_loss(i, train_x, train_y)
                     epoch_train_losses.append(loss.item())
                     optimizer.step(closure=lambda: loss)
-                    pbar.set_postfix(loss=loss.item(), lr=optimizer.param_groups[0]['lr'], epoch=epoch)
+                    pbar.set_postfix(
+                        loss=loss.item(), lr=optimizer.param_groups[0]['lr'], epoch=epoch)
             scheduler.step()
 
             # Validation
@@ -180,7 +191,8 @@ class PHMNetwork(nn.Module, abc.ABC):
             train_losses.append(np.mean(epoch_train_losses))
             validation_losses.append(np.mean(epoch_validation_losses))
 
-            if callback: callback()
+            if callback:
+                callback()
 
         # Plot losses
         if prefix is not None:
@@ -188,7 +200,8 @@ class PHMNetwork(nn.Module, abc.ABC):
             plt.plot(train_losses, label='Training loss')
             plt.plot(validation_losses, label='Validation loss')
             plt.legend()
-            plt.savefig(f'img/{prefix}_{datetime.now().ctime().replace(":", "-")}.png')
+            plt.savefig(
+                f'img/{prefix}_{datetime.now().ctime().replace(":", "-")}.png')
             plt.close()
         return train_losses, validation_losses
 
@@ -204,18 +217,22 @@ class PHMNetwork(nn.Module, abc.ABC):
         test_losses = []
         y_pred = torch.tensor([])
         for i in tqdm(range(ceil(test_x.size(0) / batch_size)), disable=silent):
-            x = test_x[i * batch_size:min(test_x.size(0), (i + 1) * batch_size)]
-            y = test_y[i * batch_size:min(test_y.size(0), (i + 1) * batch_size)]
+            x = test_x[i *
+                       batch_size:min(test_x.size(0), (i + 1) * batch_size)]
+            y = test_y[i *
+                       batch_size:min(test_y.size(0), (i + 1) * batch_size)]
             if self.task == 'regression':
                 mu, log_var = self(x)
                 loss = self.criterion(mu, y.view(-1), torch.exp(log_var))
             else:
                 confidence = self(x).squeeze()
                 loss = self.criterion(confidence, y.view(-1).float())
-                score_t = torch.sum(PHMNetwork.score(confidence, y.view(-1))).item()
+                score_t = torch.sum(PHMNetwork.score(
+                    confidence, y.view(-1))).item()
                 score_len += confidence.size(0)
                 scores.append(score_t)
-                y_pred = torch.cat((y_pred, (torch.sigmoid(confidence) > 0.5).cpu()))
+                y_pred = torch.cat(
+                    (y_pred, (torch.sigmoid(confidence) > 0.5).cpu()))
             loss.backward()
             test_losses.append(loss.item())
         metrics = {'test_loss': np.mean(test_losses)}
@@ -253,8 +270,10 @@ class PHMNetwork(nn.Module, abc.ABC):
             results.loc[i] = metrics
 
             if self.task == 'classification':
-                cm_percentage = metrics['cm'].astype('float') / metrics['cm'].sum() * 100
-                labels = np.array([[f'{value:.2f}%' for value in row] for row in cm_percentage])
+                cm_percentage = metrics['cm'].astype(
+                    'float') / metrics['cm'].sum() * 100
+                labels = np.array(
+                    [[f'{value:.2f}%' for value in row] for row in cm_percentage])
                 plt.figure(figsize=(16, 10))
                 sns.heatmap(cm_percentage, annot=labels, fmt='', cmap="viridis",
                             xticklabels=["Nominal (0)", "Faulty (1)"],
@@ -263,7 +282,8 @@ class PHMNetwork(nn.Module, abc.ABC):
                 plt.ylabel("Actual label")
                 plt.title("Confusion matrix")
                 if prefix is not None:
-                    plt.savefig(f'img/{prefix}_confusion_matrix_{i}.png', bbox_inches='tight')
+                    plt.savefig(
+                        f'img/{prefix}_confusion_matrix_{i}.png', bbox_inches='tight')
                     plt.close()
                 else:
                     plt.show()
@@ -295,16 +315,24 @@ class PyKAN(PHMNetwork):
                             sb_trainable=not self.continual_learning, device=self.device)
 
     def plot(self, scale=1, in_vars=None, varscale=4, figsize_base=(14, 10), rotate_in_vars=False):
-        self.model.plot(scale=scale, in_vars=in_vars,
-                        out_vars=['$\\mu$', '$log(\\sigma)$'] if self.task == 'regression' else ['$P(faulty)$'],
-                        varscale=varscale / self.layers[0][0], figsize_base=figsize_base,
-                        in_vars_rotation=90 if rotate_in_vars else 0)
+        try:
+            self.model.plot(scale=scale, in_vars=in_vars,
+                            out_vars=['$\\mu$', '$log(\\sigma)$'] if self.task == 'regression' else [
+                                '$P(faulty)$'],
+                            varscale=varscale / self.layers[0][0], figsize_base=figsize_base,
+                            in_vars_rotation=90 if rotate_in_vars else 0)
+        except:
+            self.model.plot(scale=scale, in_vars=in_vars,
+                            out_vars=['$\\mu$', '$log(\\sigma)$'] if self.task == 'regression' else [
+                                '$P(faulty)$'],
+                            varscale=varscale / self.layers[0][0])
 
 
 class EfficientKAN(PHMNetwork):
     def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, use_native_loss=False,
                  continual_learning=False, device='cpu'):
-        super(EfficientKAN, self).__init__(layers, task, use_native_loss, device)
+        super(EfficientKAN, self).__init__(
+            layers, task, use_native_loss, device)
         self.grid_size = grid_size
         self.model = None
         self.continual_learning = continual_learning
@@ -345,19 +373,22 @@ class EfficientKAN(PHMNetwork):
                         x.dtype)  # Determine the interval for each point
                     for k in range(1, layer.spline_order + 1):
                         bases = (
-                                        (x - grid[:, : -(k + 1)])
-                                        / (grid[:, k:-1] - grid[:, : -(k + 1)])
-                                        * bases[:, :, :-1]
-                                ) + (
-                                        (grid[:, k + 1:] - x)
-                                        / (grid[:, k + 1:] - grid[:, 1:(-k)])
-                                        * bases[:, :, 1:]
-                                )
+                            (x - grid[:, : -(k + 1)])
+                            / (grid[:, k:-1] - grid[:, : -(k + 1)])
+                            * bases[:, :, :-1]
+                        ) + (
+                            (grid[:, k + 1:] - x)
+                            / (grid[:, k + 1:] - grid[:, 1:(-k)])
+                            * bases[:, :, 1:]
+                        )
 
-                    y_vals = F.linear(bases.squeeze(), layer.scaled_spline_weight[j, i])
-                    y_vals += (layer.base_activation(x_vals) * layer.base_weight[j, i])
+                    y_vals = F.linear(
+                        bases.squeeze(), layer.scaled_spline_weight[j, i])
+                    y_vals += (layer.base_activation(x_vals)
+                               * layer.base_weight[j, i])
 
-                    alpha = math.tanh(abs(3 * layer.spline_scaler.view(layer.out_features, -1)[j, i].item()))
+                    alpha = math.tanh(
+                        abs(3 * layer.spline_scaler.view(layer.out_features, -1)[j, i].item()))
                     if type(axes) is np.ndarray:
                         axes[i * layer.out_features + j].plot(x_vals.cpu().detach().numpy(),
                                                               y_vals.cpu().detach().numpy(),
@@ -386,7 +417,8 @@ class MLP(PHMNetwork):
 
     def plot(self, scale=1, in_vars=None, node_size=300, font_size=11, edge_width=5):
         layers = [self.model[0].in_features]
-        linears = list(filter(lambda l: type(l) == torch.nn.modules.linear.Linear, self.model))
+        linears = list(filter(lambda l: type(
+            l) == torch.nn.modules.linear.Linear, self.model))
         for l in linears:
             layers.append(l.out_features)
         # layers = [6, 50, 50, 2]
