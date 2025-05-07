@@ -14,10 +14,19 @@ The goal of this project is to introduce Kolmogorov-Arnold Networks in the field
 - *Continual learning*: as proved in a [previous study of mine](https://github.com/MrPio/KAN-Continual_Learning_tests), **KANs suffer less from catastrophic forgetting than MLPs**.
 
 ### KAN
-<p align="center"><img height="275rem" align="center" src="https://github.com/user-attachments/assets/976846cd-c8ea-4fb1-a0da-67574bfb8b88"/></p>
+<div align="center">
+  <img width="40%" align="center" src="https://github.com/user-attachments/assets/8821ca12-8198-4cfc-95b0-4e35e3b0a790"/>
+  <img width="40%" align="center" src="https://github.com/user-attachments/assets/cce4d144-8994-4438-92b4-f5cfe005deb1"/>
+</div>
+<!-- <p align="center"><img height="275rem" align="center" src="https://github.com/user-attachments/assets/976846cd-c8ea-4fb1-a0da-67574bfb8b88"/></p> -->
 
 ### MLP
 <p align="center"><img height="325rem" align="center" src="https://github.com/user-attachments/assets/1195ec61-f18a-4f9b-8018-719875e902e7"/></p>
+<p align="center"><img height="325rem" align="center" src="https://github.com/user-attachments/assets/15c5e78f-4ac6-4d11-b59b-25e617b3c012"/></p>
+
+### Domain-IL protocol
+Non-trivial KANs outperform MLPs with the same trainable parameters in resilience to catastrophic forgetting.
+<p align="center"><img height="325rem" align="center" src="https://github.com/user-attachments/assets/d3b4954d-6a7d-4049-b319-e4508ba22559"/></p>
 
 ## ⚙️ How to run
 
