@@ -298,17 +298,18 @@ class PHMNetwork(nn.Module, abc.ABC):
 
 
 class PyKAN(PHMNetwork):
-    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, use_native_loss=False,
+    def __init__(self, layers, task: Literal['regression', 'classification'], grid_size=2, k=3, use_native_loss=False,
                  continual_learning=False,
                  device='cpu'):
         super(PyKAN, self).__init__(layers, task, use_native_loss, device)
         self.grid_size = grid_size
+        self.k = k
         self.model = None
         self.continual_learning = continual_learning
         self.reset()
 
     def reset(self):
-        self.model = Py_KAN(width=self.layers, grid=self.grid_size, k=3,
+        self.model = Py_KAN(width=self.layers, grid=self.grid_size, k=self.k,
                             noise_scale=0.1 if self.continual_learning else 0.3,
                             base_fun='zero' if self.continual_learning else 'silu',
                             sp_trainable=not self.continual_learning,
