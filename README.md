@@ -3,6 +3,7 @@
   
 Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm2024-conference-data-challenge/) with [Kolmogorov-Arnold Networks](https://github.com/KindXiaoming/pykan).
 
+#### 📗 Paper (J3C IFAC - ICONS) - *Using Kolmogorov-Arnold Networks for an Interpretable and Continual Fault Detection of Helicopter Turbine Engine* [`.PDF`](slideshows/Using_Kolmogorov_Arnold_Networks_for_an_Interpretable_and_Continual_Fault_Detection_of_Helicopter_Turbine_Engines.pdf) 
 #### 📘 Thesis - *Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks* [`.PDF`](slideshows/Addressing-PHM-North-America-2024-Challenge-With-Kolmogorov-Arnold-Networks.pdf) 
 #### 📙 Review 1 - *Preliminary SOTA study* [`.PPTX`](https://github.com/user-attachments/files/19043133/Gruppo.A1.prima.revisione.pptx) [`.PDF`](slideshows/1-Preliminary_SOTA_study.pdf) 
 #### 📙 Review 2 - *EDA and experiments with KANs* [`.PPTX`](https://github.com/user-attachments/files/19074287/Gruppo.A1.seconda.revisione.pptx) [`.PDF`](slideshows/2-EDA-And-Experiments-With-KANs.pdf) 
