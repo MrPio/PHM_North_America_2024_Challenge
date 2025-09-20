@@ -1,7 +1,9 @@
 # PHM North America 2024 Challenge
 <a href="https://data.phmsociety.org/phm-2024-data-challenge-submission-area/"><img src="https://img.shields.io/badge/PHM-Scoreboard-blue?style=for-the-badge" /></a>
-  
+
 Addressing [PHM North America 2024 Challenge](https://data.phmsociety.org/phm2024-conference-data-challenge/) with [Kolmogorov-Arnold Networks](https://github.com/KindXiaoming/pykan).
+
+### 🏆 [J3C IFAC] Won ICONS Best Paper Award!
 
 #### 📗 Paper (J3C IFAC - ICONS) - *Using Kolmogorov-Arnold Networks for an Interpretable and Continual Fault Detection of Helicopter Turbine Engine* [`.PDF`](slideshows/Using_Kolmogorov_Arnold_Networks_for_an_Interpretable_and_Continual_Fault_Detection_of_Helicopter_Turbine_Engines.pdf) 
 #### 📘 Thesis - *Addressing PHM North America 2024 Challenge with Kolmogorov-Arnold Networks* [`.PDF`](slideshows/Addressing-PHM-North-America-2024-Challenge-With-Kolmogorov-Arnold-Networks.pdf) 
