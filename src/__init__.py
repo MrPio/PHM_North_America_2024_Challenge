@@ -1,6 +1,7 @@
 from .dataset import *
 from .networks import *
 from .pca import *
+from .gui import continual_learning_gui
 
 __author__ = 'Valerio Morelli (@MrPio)'
 
@@ -25,3 +26,9 @@ from tqdm import tqdm
 from time import time_ns
 import random
 import math
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set_style("ticks")

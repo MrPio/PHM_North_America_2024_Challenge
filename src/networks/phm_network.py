@@ -223,9 +223,9 @@ class PHMNetwork(nn.Module, abc.ABC):
             labels = test_y.cpu()
             metrics["avg_test_score"] = sum(scores) / score_len
             metrics["accuracy"] = accuracy_score(labels, y_pred)
-            metrics["precision"] = precision_score(labels, y_pred)
-            metrics["recall"] = recall_score(labels, y_pred)
-            metrics["f1"] = f1_score(labels, y_pred)
+            metrics["precision"] = precision_score(labels, y_pred, zero_division=0)
+            metrics["recall"] = recall_score(labels, y_pred, zero_division=0)
+            metrics["f1"] = f1_score(labels, y_pred, zero_division=0)
             metrics["cm"] = confusion_matrix(labels, y_pred)
         return metrics
 
