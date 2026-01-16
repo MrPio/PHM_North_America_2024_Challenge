@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA as sklPCA
 
+from .utlis import to_latex
+
 """
 Contains the PCA class to perform and visualize both 2D and 3D PCA.
 """
@@ -34,8 +36,8 @@ class PCA:
         fig, ax = plt.subplots(1, cols, figsize=(6 * cols * scale, 6 * scale))
         for i in range(3 if is_3d else 2):
             norm = plt.Normalize(0, max(self.loadings[i]))
-            colors = plt.cm.viridis(norm(abs(self.loadings[i])))
-            ax[i].barh(self.data.columns, self.loadings[i], color=colors, alpha=0.85)
+            colors = plt.cm.magma(norm(abs(self.loadings[i])))
+            ax[i].barh(list(map(to_latex, self.data.columns)), self.loadings[i], color=colors, alpha=0.85)
             ax[i].set_title(f"Feature loadings for PC{i + 1}")
             ax[i].set_xlabel("Loading value")
         plt.tight_layout()
@@ -49,11 +51,10 @@ class PCA:
         :param labels: The name of each class of point specified by `hue`
         :param scale: The scale of the figure.
         :param ax: If provided, the axis to plot on. Otherwise, a new figure is created.
-        :param c: the color of the scatter plot. Must be a dict if labels is provided.
+        :param c: the color of the scatter plot. Must be a dict if `labels` is provided.
         :param alpha:
         :param azim: the azimuth of the 3D plot.
         :param is_3d: if the plot is 3D.
-        :return:
         """
         if labels is None:
             labels = {0: 'Healthy', 1: 'Faulty'}
@@ -62,11 +63,12 @@ class PCA:
             components[f'PC{i + 1}'] = self.data.dot(self.loadings[i, :])
 
         if ax is None:
-            fig = plt.figure(figsize=(12 * scale, 12 * scale))
+            fig = plt.figure(figsize=(12 * scale, 12 * scale), dpi=150)
             ax = fig.add_subplot(111, projection='3d' if is_3d else None)
             if is_3d:
                 ax.view_init(elev=25, azim=azim)
             ax.grid()
+            ax.set_facecolor('white')
 
         if c is None:
             c = {0: 'g', 1: 'r'}
@@ -79,6 +81,9 @@ class PCA:
                 ax.scatter(*[components.loc[hue == labels, pc] for pc in pcs],
                            c=c[labels], label=name, alpha=alpha, s=s)
             plt.legend(loc='upper right')
+            for handle in ax.get_legend().legend_handles:
+                handle._sizes = [50]
+                handle._alpha = 1
         return ax
 
     def get_components(self, num) -> pd.DataFrame:
