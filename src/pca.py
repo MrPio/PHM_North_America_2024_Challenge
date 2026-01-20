@@ -33,13 +33,13 @@ class PCA:
 
     def plot_loadings(self, scale=0.5, is_3d=False):
         cols = 3 if is_3d else 2
-        fig, ax = plt.subplots(1, cols, figsize=(6 * cols * scale, 6 * scale))
+        fig, ax = plt.subplots(1, cols, figsize=(6 * cols * scale, 6 * scale), dpi=150)
         for i in range(3 if is_3d else 2):
             norm = plt.Normalize(0, max(self.loadings[i]))
             colors = plt.cm.magma(norm(abs(self.loadings[i])))
             ax[i].barh(list(map(to_latex, self.data.columns)), self.loadings[i], color=colors, alpha=0.85)
-            ax[i].set_title(f"Feature loadings for PC{i + 1}")
-            ax[i].set_xlabel("Loading value")
+            ax[i].set_title(f"$PC{i + 1}$")
+            # ax[i].set_xlabel("Loading value")
         plt.tight_layout()
         plt.show()
 
@@ -67,6 +67,9 @@ class PCA:
             ax = fig.add_subplot(111, projection='3d' if is_3d else None)
             if is_3d:
                 ax.view_init(elev=25, azim=azim)
+                # ax.set_xlabel("PC1")
+                # ax.set_ylabel("PC2")
+                # ax.set_zlabel("PC3")
             ax.grid()
             ax.set_facecolor('white')
 

@@ -7,6 +7,7 @@ from torch import nn
 
 from .phm_network import PHMNetwork
 
+
 class MLP(PHMNetwork):
     def __init__(self, layers, task: Literal["regression", "classification"], use_native_loss=False, device="cpu"):
         super(MLP, self).__init__(layers, task, use_native_loss, device)
@@ -21,7 +22,7 @@ class MLP(PHMNetwork):
                 layers.append(nn.Sigmoid())
         self.model = nn.Sequential(*layers).to(self.device)
 
-    def plot(self, scale=1, in_vars=None, node_size=300, font_size=11, edge_width=5):
+    def plot(self, scale=1, in_vars=None, node_size=300, font_size=11, edge_width=5, use_abs=False, vmax=1):
         layers = [self.model[0].in_features]
         linears = list(filter(lambda l: type(l) == torch.nn.modules.linear.Linear, self.model))
         for l in linears:
@@ -41,8 +42,11 @@ class MLP(PHMNetwork):
                 pos[node_count] = (i * layer_gap, (j + delta // 2) * node_gap)
                 if i > 0:
                     for k in range(layers[i - 1]):
+                        weight = linears[i - 1].weight[j, k].item()
                         G.add_edge(
-                            node_count - layers[i - 1] + k - j, node_count, weight=linears[i - 1].weight[j, k].item()
+                            node_count - layers[i - 1] + k - j,
+                            node_count,
+                            weight=abs(weight) if use_abs else weight,
                         )
                 node_count += 1
 
@@ -57,12 +61,13 @@ class MLP(PHMNetwork):
             pos,
             with_labels=True,
             node_size=node_size,
-            node_color="skyblue",
-            edge_cmap=plt.colormaps["PiYG"],
+            node_color="tab:blue",
+            edge_cmap=plt.colormaps["viridis" if use_abs else "coolwarm"],
             edge_color=weights,
-            edge_vmin=-0.5,
-            edge_vmax=0.5,
+            edge_vmin=0 if use_abs else -vmax,
+            edge_vmax=vmax if use_abs else vmax,
             font_size=font_size,
+            font_color="white",
             width=edge_width,
         )
         plt.show()
