@@ -21,7 +21,7 @@ def __plot(
     tasks: list[int] = None,
 ):
     if ax is None:
-        _, ax = plt.subplots(figsize=(20 * scale, 10 * scale))
+        _, ax = plt.subplots(figsize=(20 * scale, 10 * scale), dpi=150)
         ax.set_xticks(range(0, len(losses[0]) * len(losses[0][0]) + 1, len(losses[0][0])))
         for i, test_loss in enumerate(losses[0]):
             ax.add_line(
@@ -32,7 +32,7 @@ def __plot(
                 -99,
                 99,
                 alpha=0.25,
-                color="tab:green" if i % 2 == 0 else "tab:red",
+                color="tab:orange" if i % 2 == 0 else "tab:blue",
                 label=None if i > 1 else "np > ng" if i % 2 == 0 else "np < ng",
             )
         ax.set_ylim(ylim if ylim else [-1, 0] if min(losses[0][-1]) < 0 else [0, 2])
@@ -55,7 +55,7 @@ def __plot(
         ],
         color="tab:blue" if standalone else None,
         label="test" if label is None else label,
-        linewidth=3,
+        linewidth=5,
     )
 
     if title:
@@ -130,16 +130,16 @@ def continual_learning_gui(results_dir: Path, metric="test_loss", ylim=None, tit
 
     for file in filter(lambda f: not f.is_dir(), files):
         with file.open("rb") as f:
-            losses[file.stem] = pickle.load(f)
+            losses[file.name] = pickle.load(f)
 
         btn = widgets.Button(
-            description=" ——— ".join(file.stem.split("_")[:-1]),
+            description=" ——— ".join(file.name.split("_")[:-1]),
             layout=widgets.Layout(width="auto"),
-            style={"font_size": "20px", "text_decoration": "underline" if min(losses[file.stem][0][-1]) < 0 else ""},
+            style={"font_size": "20px", "text_decoration": "underline" if min(losses[file.name][0][-1]) < 0 else ""},
             button_style="",
         )
-        btn.on_click(lambda _, f=file.stem: select_file(f))
-        buttons[file.stem] = btn
+        btn.on_click(lambda _, f=file.name: select_file(f))
+        buttons[file.name] = btn
     clear = widgets.Button(
         description="✖️ Clear",
         layout=widgets.Layout(width="auto"),
