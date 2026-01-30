@@ -9,7 +9,7 @@ from .utlis import to_latex
 Contains the PCA class to perform and visualize both 2D and 3D PCA.
 """
 
-__author__ = 'Valerio Morelli (@MrPio)'
+__author__ = "Valerio Morelli (@MrPio)"
 
 
 class PCA:
@@ -23,8 +23,18 @@ class PCA:
             self.loadings = self.pca.components_
 
     def plot_variance(self, scale=0.5):
-        plt.figure(figsize=(12 * scale, 6 * scale))
-        plt.plot(np.cumsum(self.pca.explained_variance_ratio_), marker='o', linestyle='--', color='b')
+        plt.figure(figsize=(12 * scale, 9 * scale), dpi=150)
+        y = np.cumsum(self.pca.explained_variance_ratio_)
+        x = np.arange(1, len(y) + 1)
+        plt.plot(
+            x,
+            y,
+            marker="o",
+            linestyle="--",
+            color="b",
+            markersize=12,
+            linewidth=3,
+        )
         plt.xlabel("Number of principal components")
         plt.ylabel("Cumulative explained variance")
         plt.title("Explained variance vs. number of principal components")
@@ -43,8 +53,9 @@ class PCA:
         plt.tight_layout()
         plt.show()
 
-    def plot_pca(self, hue=None, labels: dict = None, scale=0.5, ax=None, c=None, alpha=0.04, azim=235,
-                 is_3d=False) -> plt.axis:
+    def plot_pca(
+        self, hue=None, labels: dict = None, scale=0.5, ax=None, c=None, alpha=0.04, azim=235, is_3d=False
+    ) -> plt.axis:
         """
         Plot a 2D or 3D PCA projection of the PCA components.
         :param hue: The classes of each point.
@@ -57,37 +68,40 @@ class PCA:
         :param is_3d: if the plot is 3D.
         """
         if labels is None:
-            labels = {0: 'Healthy', 1: 'Faulty'}
+            labels = {0: "Healthy", 1: "Faulty"}
         components = pd.DataFrame()
         for i in range(3 if is_3d else 2):
-            components[f'PC{i + 1}'] = self.data.dot(self.loadings[i, :])
+            components[f"PC{i + 1}"] = self.data.dot(self.loadings[i, :])
 
         if ax is None:
             fig = plt.figure(figsize=(12 * scale, 12 * scale), dpi=150)
-            ax = fig.add_subplot(111, projection='3d' if is_3d else None)
+            ax = fig.add_subplot(111, projection="3d" if is_3d else None)
             if is_3d:
                 ax.view_init(elev=25, azim=azim)
                 # ax.set_xlabel("PC1")
                 # ax.set_ylabel("PC2")
                 # ax.set_zlabel("PC3")
             ax.grid()
-            ax.set_facecolor('white')
+            ax.set_facecolor("white")
 
         if c is None:
-            c = {0: 'g', 1: 'r'}
+            c = {0: "g", 1: "r"}
         s = 0.5 * 750_000 / len(self.data)
-        pcs = [f'PC{x + 1}' for x in range(3 if is_3d else 2)]
+        pcs = [f"PC{x + 1}" for x in range(3 if is_3d else 2)]
         if hue is None:
             ax.scatter(*[components[pc] for pc in pcs], alpha=alpha, s=s)
         else:
             for labels, name in labels.items():
-                ax.scatter(*[components.loc[hue == labels, pc] for pc in pcs],
-                           c=c[labels], label=name, alpha=alpha, s=s)
-            plt.legend(loc='upper right')
+                ax.scatter(
+                    *[components.loc[hue == labels, pc] for pc in pcs], c=c[labels], label=name, alpha=alpha, s=s
+                )
+            plt.legend(loc="upper right")
             for handle in ax.get_legend().legend_handles:
                 handle._sizes = [50]
                 handle._alpha = 1
         return ax
 
     def get_components(self, num) -> pd.DataFrame:
-        return pd.DataFrame(self.data.values.dot(self.loadings[:num, :].transpose()), columns=[f'PC{i + 1}' for i in range(num)])
+        return pd.DataFrame(
+            self.data.values.dot(self.loadings[:num, :].transpose()), columns=[f"PC{i + 1}" for i in range(num)]
+        )
